@@ -56,8 +56,15 @@ def create_user(payload: dict = Body(...)):
     user_code = payload.get("user_code")
     if not user_code:
         raise HTTPException(status_code=400, detail="user_code is required")
-    # DUPLICATE_USER (7) means the user already exists upstream - treat as fine, not an error.
-    call_casino_or_raise("CreateUser", {"userCode": user_code}, ignore_status=(7,))
+    # A user that already exists upstream is fine here - we just want to make
+    # sure the vendor knows about them. Vendor returns "Usercode already exist."
+    # or the documented DUPLICATE_USER (status 7); accept both.
+    data = call_casino("CreateUser", {"userCode": user_code})
+    status = data.get("status")
+    msg = str(data.get("msg", ""))
+    already_exists = "already exist" in msg.lower() or "duplicate" in msg.lower()
+    if status not in (0, 7) and not already_exists:
+        raise HTTPException(status_code=400, detail=msg or "CreateUser failed")
     existing = db.users.find_one({"user_code": user_code})
     if existing:
         return serialize(existing)

@@ -673,8 +673,9 @@
         try {
           const responseData = await callCasino("GetAgentInfo", {});
 
-          if (responseData.balance) {
-            const balanceValue = responseData.balance.IDR ?? Object.values(responseData.balance)[0];
+          const balancesMap = responseData.balances || responseData.balance;
+          if (balancesMap && typeof balancesMap === "object") {
+            const balanceValue = balancesMap.IDR ?? Object.values(balancesMap)[0];
             balanceStatElement.textContent = "IDR " + balanceValue;
           } else {
             balanceStatElement.textContent = responseData.msg || "Error";
