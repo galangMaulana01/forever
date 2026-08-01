@@ -13,6 +13,7 @@ load_dotenv()
 CASINO_BASE_URL = "https://api.aicvgdbi.win/api/casinoapi"
 CASINO_TOKEN = os.environ["CASINO_TOKEN"]
 CASINO_AGENT = os.environ["CASINO_AGENT"]
+CURRENCY_CODE = "IDR"
 
 mongo_client = MongoClient(os.environ["DATABASE_URL"])
 db = mongo_client.get_default_database()
@@ -57,7 +58,31 @@ def create_user(payload: dict = Body(...)):
 
 @app.get("/users")
 def list_users():
-    return [serialize(user) for user in db.users.find()]
+    users = [serialize(user) for user in db.users.find()]
+    try:
+        info = call_casino("GetUserInfo", {})
+        balances_by_code = {u.get("userCode"): u.get("balances", {}) for u in info.get("users", [])}
+    except HTTPException:
+        balances_by_code = {}
+    for user in users:
+        user["total_balance"] = balances_by_code.get(user["user_code"], {}).get(CURRENCY_CODE, 0)
+    return users
+
+
+@app.post("/users/{user_code}/deposit")
+def deposit_user(user_code: str, payload: dict = Body(...)):
+    amount = payload.get("amount")
+    if amount is None:
+        raise HTTPException(status_code=400, detail="amount is required")
+    return call_casino("Deposit", {"userCode": user_code, "currencyCode": CURRENCY_CODE, "amount": amount})
+
+
+@app.post("/users/{user_code}/withdraw")
+def withdraw_user(user_code: str, payload: dict = Body(...)):
+    amount = payload.get("amount")
+    if amount is None:
+        raise HTTPException(status_code=400, detail="amount is required")
+    return call_casino("Withdraw", {"userCode": user_code, "currencyCode": CURRENCY_CODE, "amount": amount})
 
 
 @app.get("/vendors")

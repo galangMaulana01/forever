@@ -24,6 +24,17 @@
       .btn-run { font-size: .75rem; padding: .5rem 1rem; border-radius: .5rem; background: #f5f5f5; color: #0a0a0a; font-weight: 500; }
       .btn-run:hover { background: #fff; }
       .btn-run:disabled { opacity: .5; }
+      .btn-ghost { font-size: .75rem; padding: .5rem 1rem; border-radius: .5rem; border: 1px solid #262626; color: inherit; }
+      .btn-ghost:hover { background: rgba(255,255,255,.06); }
+      table.data-table { width: 100%; border-collapse: collapse; font-size: .8125rem; }
+      table.data-table th { text-align: left; font-weight: 500; color: #a3a3a3; padding: .5rem .75rem; border-bottom: 1px solid #262626; white-space: nowrap; }
+      table.data-table td { padding: .5rem .75rem; border-bottom: 1px solid #1a1a1a; vertical-align: middle; }
+      table.data-table tbody tr:hover { background: rgba(255,255,255,.02); }
+      .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 50; }
+      .modal-overlay.hidden { display: none; }
+      .modal-box { width: 100%; max-width: 24rem; background: #0a0a0a; border: 1px solid #262626; border-radius: .75rem; padding: 1.25rem; }
+      .game-thumb { width: 48px; height: 48px; border-radius: .375rem; object-fit: cover; background: #171717; }
+      .pill { display: inline-block; font-size: .6875rem; padding: .125rem .5rem; border-radius: 999px; border: 1px solid #262626; }
     </style>
   </head>
   <body class="bg-neutral-950 text-neutral-300 min-h-screen">
@@ -50,126 +61,224 @@
           </div>
         </header>
 
-        <main class="p-4 sm:p-6 max-w-5xl">
+        <main class="p-4 sm:p-6 max-w-6xl">
           <!-- ================= USERS ================= -->
           <section class="section" data-section="users">
-            <div class="grid lg:grid-cols-2 gap-4">
-              <form class="border border-neutral-800 rounded-xl p-4 space-y-2" data-endpoint="CreateUser" data-out="out-users">
-                <h3 class="text-sm font-medium text-neutral-200">Create User</h3>
-                <input class="f-input" name="userCode" placeholder="userCode" required>
-                <button class="btn-run" type="submit">Jalankan</button>
-              </form>
-
-              <form class="border border-neutral-800 rounded-xl p-4 space-y-2" data-endpoint="ListUsers" data-out="out-users">
-                <h3 class="text-sm font-medium text-neutral-200">List Users</h3>
-                <button class="btn-run" type="submit">Jalankan</button>
-              </form>
+            <div class="flex justify-end mb-3">
+              <button id="btnOpenCreateUser" class="btn-run" type="button">+ Buat User</button>
             </div>
-            <div class="mt-4 border border-neutral-800 rounded-xl">
-              <div class="px-4 py-3 border-b border-neutral-800"><h2 class="text-sm font-medium text-neutral-200">Respons</h2></div>
-              <div class="p-4"><pre id="out-users" class="mono text-xs text-neutral-500 whitespace-pre-wrap break-all min-h-[2.5rem]">belum ada request</pre></div>
+            <div class="border border-neutral-800 rounded-xl overflow-x-auto">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Nama User</th>
+                    <th>Balance</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                  <tr><td colspan="4" class="text-neutral-500 mono text-xs">memuat...</td></tr>
+                </tbody>
+              </table>
             </div>
           </section>
 
-          <!-- ================= GAMES ================= -->
-          <section class="section" data-section="games">
-            <div class="grid lg:grid-cols-2 gap-4">
-              <form class="border border-neutral-800 rounded-xl p-4 space-y-2" data-endpoint="GetVendors" data-out="out-games">
-                <h3 class="text-sm font-medium text-neutral-200">Get Vendor List</h3>
-                <button class="btn-run" type="submit">Jalankan</button>
-              </form>
+          <!-- ================= GAME LIST ================= -->
+          <section class="section" data-section="gamelist">
+            <div class="border border-neutral-800 rounded-xl p-4 space-y-3">
+              <div class="grid sm:grid-cols-3 gap-2">
+                <select id="gameListVendor" class="f-input">
+                  <option value="">Pilih vendor...</option>
+                </select>
+                <select id="gameListFilter" class="f-input">
+                  <option value="all">Semua Tipe (All)</option>
+                  <option value="1">Slot</option>
+                  <option value="2">Live Casino</option>
+                </select>
+                <button id="btnLoadGameList" class="btn-run" type="button">Muat Game List</button>
+              </div>
+            </div>
+            <div class="mt-4 border border-neutral-800 rounded-xl overflow-x-auto">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>No / Game Type</th>
+                    <th>Game Code / Name</th>
+                    <th>Image</th>
+                  </tr>
+                </thead>
+                <tbody id="gameListTableBody">
+                  <tr><td colspan="3" class="text-neutral-500 mono text-xs">pilih vendor lalu klik "Muat Game List"</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
 
-              <form class="border border-neutral-800 rounded-xl p-4 space-y-2" data-endpoint="GetVendorGames" data-out="out-games">
-                <h3 class="text-sm font-medium text-neutral-200">Get Game List</h3>
-                <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
-                <button class="btn-run" type="submit">Jalankan</button>
-              </form>
-
-              <form class="border border-neutral-800 rounded-xl p-4 space-y-2 lg:col-span-2" data-endpoint="LaunchGame" data-out="out-games">
+          <!-- ================= GAME CONTROL ================= -->
+          <section class="section" data-section="gamecontrol">
+            <div class="space-y-4">
+              <!-- Launch Game -->
+              <form id="formLaunchGame" class="border border-neutral-800 rounded-xl p-4 space-y-2">
                 <h3 class="text-sm font-medium text-neutral-200">Launch Game Session</h3>
                 <div class="grid sm:grid-cols-3 gap-2">
                   <input class="f-input" name="userCode" placeholder="userCode" required>
                   <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
-                  <input class="f-input" name="gameCode" placeholder="gameCode" required>
+                  <input class="f-input" name="gameCode" placeholder="gameCode (opsional)">
                 </div>
-                <button class="btn-run" type="submit">Jalankan</button>
+                <div class="grid sm:grid-cols-2 gap-2">
+                  <input class="f-input" name="lowRtp" type="number" step="0.01" min="0" max="1" placeholder="lowRtp (opsional, ex. 0.6)">
+                  <input class="f-input" name="highRtp" type="number" step="0.01" min="0" max="1" placeholder="highRtp (opsional, ex. 0.8)">
+                </div>
+                <p class="text-xs text-neutral-500">RTP di-set saat sesi dimulai (tidak bisa diubah setelah sesi berjalan).</p>
+                <button class="btn-run" type="submit">Launch</button>
               </form>
-            </div>
-            <div class="mt-4 border border-neutral-800 rounded-xl">
-              <div class="px-4 py-3 border-b border-neutral-800"><h2 class="text-sm font-medium text-neutral-200">Respons</h2></div>
-              <div class="p-4"><pre id="out-games" class="mono text-xs text-neutral-500 whitespace-pre-wrap break-all min-h-[2.5rem]">belum ada request</pre></div>
+              <div class="border border-neutral-800 rounded-xl">
+                <div class="px-4 py-3 border-b border-neutral-800"><h2 class="text-sm font-medium text-neutral-200">Respons Launch</h2></div>
+                <div class="p-4"><pre id="out-launch" class="mono text-xs text-neutral-500 whitespace-pre-wrap break-all min-h-[2.5rem]">belum ada request</pre></div>
+              </div>
+
+              <!-- Live Wager Feed -->
+              <div class="border border-neutral-800 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="text-sm font-medium text-neutral-200">Live Wager Feed</h3>
+                  <div class="flex items-center gap-2">
+                    <span id="wagerFeedStatus" class="pill text-neutral-500">berhenti</span>
+                    <button id="btnToggleWagerFeed" class="btn-ghost" type="button">Mulai</button>
+                  </div>
+                </div>
+                <p class="text-xs text-neutral-500 mb-3">Polling ke ReportByDate setiap 8 detik (rate-limit vendor: minimal 5 detik antar-panggilan). Ini feed wager yang baru terjadi, bukan daftar sesi yang sedang online.</p>
+                <div class="border border-neutral-800 rounded-lg overflow-x-auto">
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Waktu</th>
+                        <th>User</th>
+                        <th>Vendor</th>
+                        <th>Game</th>
+                        <th>Bet</th>
+                        <th>Payout</th>
+                        <th>Balance Sebelum</th>
+                        <th>Balance Sesudah</th>
+                        <th>Selesai</th>
+                      </tr>
+                    </thead>
+                    <tbody id="wagerFeedTableBody">
+                      <tr><td colspan="9" class="text-neutral-500 mono text-xs">klik "Mulai" untuk memantau wager terbaru</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Free Round Management -->
+              <div class="border border-neutral-800 rounded-xl p-4 space-y-4">
+                <h3 class="text-sm font-medium text-neutral-200">Free Round Management</h3>
+
+                <form data-endpoint="GetFreeRoundList" class="space-y-2">
+                  <p class="text-xs text-neutral-400">Get Free Round List</p>
+                  <div class="grid sm:grid-cols-3 gap-2">
+                    <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
+                    <input class="f-input" name="gameCode" placeholder="gameCode" required>
+                    <button class="btn-run" type="submit">Jalankan</button>
+                  </div>
+                </form>
+
+                <form data-endpoint="ApplyFreeRound" class="space-y-2 border-t border-neutral-800 pt-3">
+                  <p class="text-xs text-neutral-400">Apply Free Round</p>
+                  <div class="grid sm:grid-cols-3 gap-2">
+                    <input class="f-input" name="userCode" placeholder="userCode" required>
+                    <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
+                    <input class="f-input" name="gameCode" placeholder="gameCode" required>
+                    <input class="f-input" name="betAmount" type="number" step="any" placeholder="betAmount (lihat Get Free Round List)" required>
+                    <input class="f-input" name="spinCount" type="number" placeholder="spinCount" required>
+                    <input class="f-input" name="expireHours" type="number" step="any" placeholder="expireHours" required>
+                  </div>
+                  <button class="btn-run" type="submit">Jalankan</button>
+                </form>
+
+                <form data-endpoint="CancelFreeRound" class="space-y-2 border-t border-neutral-800 pt-3">
+                  <p class="text-xs text-neutral-400">Cancel Free Round</p>
+                  <div class="grid sm:grid-cols-3 gap-2">
+                    <input class="f-input" name="userCode" placeholder="userCode" required>
+                    <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
+                    <input class="f-input" name="gameCode" placeholder="gameCode" required>
+                  </div>
+                  <button class="btn-run" type="submit">Jalankan</button>
+                </form>
+
+                <div class="border border-neutral-800 rounded-lg">
+                  <div class="px-4 py-3 border-b border-neutral-800"><h2 class="text-sm font-medium text-neutral-200">Respons Free Round</h2></div>
+                  <div class="p-4"><pre id="out-freeround" class="mono text-xs text-neutral-500 whitespace-pre-wrap break-all min-h-[2.5rem]">belum ada request</pre></div>
+                </div>
+              </div>
             </div>
           </section>
 
-          <!-- ================= FREE ROUND (Casino API) ================= -->
-          <section class="section" data-section="freeround">
-            <div class="grid lg:grid-cols-2 gap-4">
-              <form class="border border-neutral-800 rounded-xl p-4 space-y-2" data-endpoint="GetFreeRoundList" data-out="out-freeround">
-                <h3 class="text-sm font-medium text-neutral-200">Get Free Round List</h3>
-                <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
-                <input class="f-input" name="gameCode" placeholder="gameCode" required>
-                <button class="btn-run" type="submit">Jalankan</button>
-              </form>
-
-              <div class="hidden lg:block"></div>
-
-              <form class="border border-neutral-800 rounded-xl p-4 space-y-2" data-endpoint="ApplyFreeRound" data-out="out-freeround">
-                <h3 class="text-sm font-medium text-neutral-200">Apply Free Round</h3>
-                <input class="f-input" name="userCode" placeholder="userCode" required>
-                <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
-                <input class="f-input" name="gameCode" placeholder="gameCode" required>
-                <input class="f-input" name="betAmount" type="number" step="any" placeholder="betAmount" required>
-                <input class="f-input" name="spinCount" type="number" placeholder="spinCount" required>
-                <input class="f-input" name="expireHours" type="number" step="any" placeholder="expireHours" required>
-                <button class="btn-run" type="submit">Jalankan</button>
-              </form>
-
-              <form class="border border-neutral-800 rounded-xl p-4 space-y-2" data-endpoint="CancelFreeRound" data-out="out-freeround">
-                <h3 class="text-sm font-medium text-neutral-200">Cancel Free Round</h3>
-                <input class="f-input" name="userCode" placeholder="userCode" required>
-                <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
-                <input class="f-input" name="gameCode" placeholder="gameCode" required>
-                <button class="btn-run" type="submit">Jalankan</button>
-              </form>
-            </div>
-            <div class="mt-4 border border-neutral-800 rounded-xl">
-              <div class="px-4 py-3 border-b border-neutral-800"><h2 class="text-sm font-medium text-neutral-200">Respons</h2></div>
-              <div class="p-4"><pre id="out-freeround" class="mono text-xs text-neutral-500 whitespace-pre-wrap break-all min-h-[2.5rem]">belum ada request</pre></div>
-            </div>
-          </section>
-
-          <!-- ================= LAUNCH HISTORY MANAGEMENT (Backend) ================= -->
+          <!-- ================= LAUNCH HISTORY ================= -->
           <section class="section" data-section="launch-history">
-            <div class="grid lg:grid-cols-2 gap-4">
-              <form class="border border-neutral-800 rounded-xl p-4 space-y-2" data-endpoint="ListLaunchHistory" data-out="out-launch-history">
-                <h3 class="text-sm font-medium text-neutral-200">List Launch History</h3>
-                <button class="btn-run" type="submit">Jalankan</button>
-              </form>
-
-              <form class="border border-neutral-800 rounded-xl p-4 space-y-2" data-endpoint="DeleteLaunchHistory" data-out="out-launch-history">
-                <h3 class="text-sm font-medium text-neutral-200">Delete Launch History</h3>
-                <input class="f-input" name="id" placeholder="id" required>
-                <button class="btn-run" type="submit">Jalankan</button>
-              </form>
-            </div>
-            <div class="mt-4 border border-neutral-800 rounded-xl">
-              <div class="px-4 py-3 border-b border-neutral-800"><h2 class="text-sm font-medium text-neutral-200">Respons</h2></div>
-              <div class="p-4"><pre id="out-launch-history" class="mono text-xs text-neutral-500 whitespace-pre-wrap break-all min-h-[2.5rem]">belum ada request</pre></div>
+            <div class="border border-neutral-800 rounded-xl overflow-x-auto">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>User</th>
+                    <th>Vendor</th>
+                    <th>Game Code</th>
+                    <th>Status</th>
+                    <th>Message</th>
+                    <th>Error ID</th>
+                    <th>Waktu</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="launchHistoryTableBody">
+                  <tr><td colspan="9" class="text-neutral-500 mono text-xs">memuat...</td></tr>
+                </tbody>
+              </table>
             </div>
           </section>
         </main>
       </div>
     </div>
 
+    <!-- Modal: Create User -->
+    <div id="modalCreateUser" class="modal-overlay hidden">
+      <form id="formCreateUser" class="modal-box space-y-3">
+        <h3 class="text-sm font-medium text-neutral-200">Buat User Baru</h3>
+        <input class="f-input" name="userCode" placeholder="Nama / kode user" required>
+        <div class="flex justify-end gap-2">
+          <button type="button" class="btn-ghost" data-close-modal="modalCreateUser">Batal</button>
+          <button type="submit" class="btn-run">Simpan</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Modal: Deposit/Withdraw -->
+    <div id="modalUserAction" class="modal-overlay hidden">
+      <form id="formUserAction" class="modal-box space-y-3">
+        <h3 class="text-sm font-medium text-neutral-200">Kelola Balance — <span id="userActionUserCode" class="mono"></span></h3>
+        <div class="flex gap-4 text-sm">
+          <label class="flex items-center gap-1.5"><input type="radio" name="action" value="deposit" checked> Deposit</label>
+          <label class="flex items-center gap-1.5"><input type="radio" name="action" value="withdraw"> Withdraw</label>
+        </div>
+        <input class="f-input" name="amount" type="number" step="any" min="0" placeholder="amount" required>
+        <div class="flex justify-end gap-2">
+          <button type="button" class="btn-ghost" data-close-modal="modalUserAction">Batal</button>
+          <button type="submit" class="btn-run">Simpan</button>
+        </div>
+      </form>
+    </div>
+
     <script>
       const agentCode = "Keenan";
+      const CURRENCY_CODE = "IDR";
 
       // Navigasi sidebar
       const navigationSections = [
-        { sectionKey: "users", label: "User Management" },
-        { sectionKey: "games", label: "Game & Provider" },
-        { sectionKey: "freeround", label: "Free Round" },
-        { sectionKey: "launch-history", label: "Launch History" },
+        { sectionKey: "users", label: "User" },
+        { sectionKey: "gamelist", label: "Game List" },
+        { sectionKey: "gamecontrol", label: "Game Control" },
+        { sectionKey: "launch-history", label: "Launch Game History" },
       ];
 
       const navigationListElement = document.getElementById("navigationList");
@@ -194,8 +303,13 @@
         if (window.innerWidth < 1024) {
           document.getElementById("sidebar").classList.add("-translate-x-full");
         }
+
+        if (sectionKey === "users") loadUsers();
+        if (sectionKey === "gamelist") loadVendorsForGameList();
+        if (sectionKey === "launch-history") loadLaunchHistory();
+        // Live wager feed hanya jalan kalau section gamecontrol aktif (hemat rate-limit vendor)
+        if (sectionKey !== "gamecontrol") stopWagerFeed();
       }
-      // halaman pertama yang tampil pas dibuka = item pertama di navigationSections
       showSection(navigationSections[0].sectionKey);
 
       document.getElementById("menuToggleButton").addEventListener("click", () => {
@@ -218,7 +332,6 @@
         }
         const response = await fetch(endpoint, config);
         if (!response.ok) {
-          // try to get error json
           let errorText = await response.text();
           try {
             const errorJson = JSON.parse(errorText);
@@ -232,86 +345,321 @@
 
       function renderApiResult(outputElementId, responseData, errorMessage) {
         const outputElement = document.getElementById(outputElementId);
+        if (!outputElement) return;
         outputElement.classList.remove("skeleton");
         outputElement.textContent = errorMessage ? "ERROR: " + errorMessage : JSON.stringify(responseData, null, 2);
       }
 
       function showLoadingState(outputElementId) {
         const outputElement = document.getElementById(outputElementId);
+        if (!outputElement) return;
         outputElement.classList.add("skeleton");
         outputElement.textContent = "memuat...";
       }
 
-      // Wiring semua form endpoint
+      function openModal(modalId) { document.getElementById(modalId).classList.remove("hidden"); }
+      function closeModal(modalId) { document.getElementById(modalId).classList.add("hidden"); }
+      document.querySelectorAll("[data-close-modal]").forEach(button => {
+        button.addEventListener("click", () => closeModal(button.dataset.closeModal));
+      });
+
+      function escapeHtml(text) {
+        return String(text ?? "").replace(/[&<>"']/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[char]));
+      }
+
+      function formatDateTime(value) {
+        if (!value) return "-";
+        const date = new Date(value);
+        if (isNaN(date.getTime())) return String(value);
+        return date.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+      }
+
+      // ================= USERS =================
+      async function loadUsers() {
+        const tbody = document.getElementById("usersTableBody");
+        tbody.innerHTML = `<tr><td colspan="4" class="text-neutral-500 mono text-xs">memuat...</td></tr>`;
+        try {
+          const users = await callBackend("/users", "GET");
+          if (!users.length) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-neutral-500 mono text-xs">belum ada user</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = users.map(user => `
+            <tr>
+              <td class="mono text-xs text-neutral-500">${escapeHtml(user._id)}</td>
+              <td>${escapeHtml(user.user_code)}</td>
+              <td class="mono">${escapeHtml(user.total_balance ?? 0)}</td>
+              <td><button class="btn-ghost" data-user-action="${escapeHtml(user.user_code)}">Deposit/Withdraw</button></td>
+            </tr>
+          `).join("");
+          tbody.querySelectorAll("[data-user-action]").forEach(button => {
+            button.addEventListener("click", () => {
+              document.getElementById("userActionUserCode").textContent = button.dataset.userAction;
+              document.getElementById("formUserAction").dataset.userCode = button.dataset.userAction;
+              openModal("modalUserAction");
+            });
+          });
+        } catch (error) {
+          tbody.innerHTML = `<tr><td colspan="4" class="text-red-400 mono text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
+        }
+      }
+
+      document.getElementById("btnOpenCreateUser").addEventListener("click", () => openModal("modalCreateUser"));
+
+      document.getElementById("formCreateUser").addEventListener("submit", async event => {
+        event.preventDefault();
+        const userCode = event.target.userCode.value;
+        try {
+          await callBackend("/users", "POST", { user_code: userCode });
+          event.target.reset();
+          closeModal("modalCreateUser");
+          loadUsers();
+        } catch (error) {
+          alert("Gagal membuat user: " + error.message);
+        }
+      });
+
+      document.getElementById("formUserAction").addEventListener("submit", async event => {
+        event.preventDefault();
+        const userCode = event.target.dataset.userCode;
+        const action = event.target.action.value;
+        const amount = Number(event.target.amount.value);
+        try {
+          await callBackend(`/users/${encodeURIComponent(userCode)}/${action}`, "POST", { amount });
+          event.target.reset();
+          closeModal("modalUserAction");
+          loadUsers();
+        } catch (error) {
+          alert("Gagal memproses: " + error.message);
+        }
+      });
+
+      // ================= GAME LIST =================
+      async function loadVendorsForGameList() {
+        const select = document.getElementById("gameListVendor");
+        if (select.dataset.loaded) return;
+        try {
+          const response = await callBackend("/vendors", "GET");
+          const vendors = response.vendors || [];
+          select.innerHTML = `<option value="">Pilih vendor...</option>` + vendors.map(vendor =>
+            `<option value="${escapeHtml(vendor.vendorCode)}">${escapeHtml(vendor.vendorName)} (${escapeHtml(vendor.vendorCode)})</option>`
+          ).join("");
+          select.dataset.loaded = "1";
+        } catch (error) {
+          select.innerHTML = `<option value="">Gagal memuat vendor</option>`;
+        }
+      }
+
+      function parseLocalizedField(value, fallback) {
+        if (!value) return fallback;
+        try {
+          const parsed = JSON.parse(value);
+          return parsed.en || Object.values(parsed)[0] || fallback;
+        } catch (_) {
+          return value;
+        }
+      }
+
+      let loadedGames = [];
+
+      function renderGameListTable() {
+        const tbody = document.getElementById("gameListTableBody");
+        const filter = document.getElementById("gameListFilter").value;
+        const filtered = filter === "all" ? loadedGames : loadedGames.filter(game => String(game.gameType) === filter);
+        if (!filtered.length) {
+          tbody.innerHTML = `<tr><td colspan="3" class="text-neutral-500 mono text-xs">tidak ada game untuk filter ini</td></tr>`;
+          return;
+        }
+        const gameTypeLabel = type => type === 1 ? "Slot" : type === 2 ? "Live Casino" : `Type ${type}`;
+        tbody.innerHTML = filtered.map((game, index) => `
+          <tr>
+            <td><span class="pill">${escapeHtml(gameTypeLabel(game.gameType))}</span> <span class="mono text-xs text-neutral-500">#${index + 1}</span></td>
+            <td>
+              <div>${escapeHtml(parseLocalizedField(game.gameName, game.gameCode))}</div>
+              <div class="mono text-xs text-neutral-500">${escapeHtml(game.gameCode)}</div>
+            </td>
+            <td><img class="game-thumb" src="${escapeHtml(parseLocalizedField(game.imageUrl, ""))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></td>
+          </tr>
+        `).join("");
+      }
+
+      document.getElementById("btnLoadGameList").addEventListener("click", async () => {
+        const vendorCode = document.getElementById("gameListVendor").value;
+        const tbody = document.getElementById("gameListTableBody");
+        if (!vendorCode) {
+          tbody.innerHTML = `<tr><td colspan="3" class="text-neutral-500 mono text-xs">pilih vendor dulu</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = `<tr><td colspan="3" class="text-neutral-500 mono text-xs">memuat...</td></tr>`;
+        try {
+          const response = await callBackend(`/games?vendor=${encodeURIComponent(vendorCode)}`, "GET");
+          loadedGames = response.vendorGames || [];
+          renderGameListTable();
+        } catch (error) {
+          tbody.innerHTML = `<tr><td colspan="3" class="text-red-400 mono text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
+        }
+      });
+
+      document.getElementById("gameListFilter").addEventListener("change", renderGameListTable);
+
+      // ================= GAME CONTROL: LAUNCH GAME =================
+      document.getElementById("formLaunchGame").addEventListener("submit", async event => {
+        event.preventDefault();
+        const form = event.target;
+        const userCode = form.userCode.value;
+        const vendorCode = form.vendorCode.value;
+        const gameCode = form.gameCode.value;
+        const lowRtp = form.lowRtp.value;
+        const highRtp = form.highRtp.value;
+        showLoadingState("out-launch");
+        try {
+          await callBackend("/users", "POST", { user_code: userCode });
+          const casinoParams = { userCode, vendorCode, currencyCode: CURRENCY_CODE };
+          if (gameCode) casinoParams.gameCode = gameCode;
+          if (lowRtp) casinoParams.lowRtp = Number(lowRtp);
+          if (highRtp) casinoParams.highRtp = Number(highRtp);
+          const casinoResponse = await callCasino("GetGameUrl", casinoParams);
+          const historyResponse = await callBackend("/launch-history", "POST", {
+            user_code: userCode,
+            vendor_code: vendorCode,
+            game_code: gameCode,
+            response: casinoResponse
+          });
+          renderApiResult("out-launch", historyResponse);
+        } catch (error) {
+          renderApiResult("out-launch", null, error.message);
+        }
+      });
+
+      // ================= GAME CONTROL: LIVE WAGER FEED =================
+      let wagerFeedIntervalId = null;
+      const wagerFeedSeen = new Map();
+
+      function toCasinoDateTime(date) {
+        const pad = n => String(n).padStart(2, "0");
+        return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
+      }
+
+      function renderWagerFeedTable() {
+        const tbody = document.getElementById("wagerFeedTableBody");
+        const wagers = Array.from(wagerFeedSeen.values())
+          .sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))
+          .slice(0, 100);
+        if (!wagers.length) {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-neutral-500 mono text-xs">belum ada wager terbaru</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = wagers.map(wager => `
+          <tr>
+            <td class="mono text-xs">${escapeHtml(wager.createdOn)}</td>
+            <td>${escapeHtml(wager.userCode)}</td>
+            <td class="mono text-xs">${escapeHtml(wager.vendorCode)}</td>
+            <td class="mono text-xs">${escapeHtml(wager.gameCode)}</td>
+            <td class="mono">${escapeHtml(wager.betAmount)}</td>
+            <td class="mono">${escapeHtml(wager.payoutAmount)}</td>
+            <td class="mono text-xs text-neutral-500">${escapeHtml(wager.beforeBalance)}</td>
+            <td class="mono text-xs text-neutral-500">${escapeHtml(wager.afterBalance)}</td>
+            <td>${wager.isFinished ? "✓" : "…"}</td>
+          </tr>
+        `).join("");
+      }
+
+      async function pollWagerFeed() {
+        const now = new Date();
+        const start = new Date(now.getTime() - 4 * 60 * 1000);
+        try {
+          const response = await callCasino("ReportByDate", {
+            startDate: toCasinoDateTime(start),
+            endDate: toCasinoDateTime(now)
+          });
+          (response.wagers || []).forEach(wager => wagerFeedSeen.set(wager.wagerId, wager));
+          renderWagerFeedTable();
+          document.getElementById("wagerFeedStatus").textContent = "live";
+        } catch (error) {
+          document.getElementById("wagerFeedStatus").textContent = "error: " + error.message;
+        }
+      }
+
+      function startWagerFeed() {
+        if (wagerFeedIntervalId) return;
+        pollWagerFeed();
+        wagerFeedIntervalId = setInterval(pollWagerFeed, 8000);
+        document.getElementById("btnToggleWagerFeed").textContent = "Berhenti";
+        document.getElementById("wagerFeedStatus").textContent = "live";
+      }
+
+      function stopWagerFeed() {
+        if (!wagerFeedIntervalId) return;
+        clearInterval(wagerFeedIntervalId);
+        wagerFeedIntervalId = null;
+        document.getElementById("btnToggleWagerFeed").textContent = "Mulai";
+        document.getElementById("wagerFeedStatus").textContent = "berhenti";
+      }
+
+      document.getElementById("btnToggleWagerFeed").addEventListener("click", () => {
+        if (wagerFeedIntervalId) stopWagerFeed(); else startWagerFeed();
+      });
+
+      // ================= GAME CONTROL: FREE ROUND =================
       document.querySelectorAll("form[data-endpoint]").forEach(formElement => {
         formElement.addEventListener("submit", async submitEvent => {
           submitEvent.preventDefault();
           const methodName = formElement.dataset.endpoint;
-          const outputElementId = formElement.dataset.out;
           const requestParameters = {};
           formElement.querySelectorAll("[name]").forEach(inputElement => {
             requestParameters[inputElement.name] = inputElement.value;
           });
-          showLoadingState(outputElementId);
+          showLoadingState("out-freeround");
           try {
-            let responseData;
-            // Determine if endpoint is backend or casino
-            const backendEndpoints = ["CreateUser", "ListUsers", "GetVendors", "GetVendorGames", "LaunchGame", "ListLaunchHistory", "DeleteLaunchHistory"];
-            if (backendEndpoints.includes(methodName)) {
-              // Backend call
-              switch (methodName) {
-                case "CreateUser":
-                  responseData = await callBackend("/users", "POST", { user_code: requestParameters.userCode });
-                  break;
-                case "ListUsers":
-                  responseData = await callBackend("/users", "GET");
-                  break;
-                case "GetVendors":
-                  responseData = await callBackend("/vendors", "GET");
-                  break;
-                case "GetVendorGames":
-                  responseData = await callBackend(`/games?vendor=${requestParameters.vendorCode}`, "GET");
-                  break;
-                case "LaunchGame":
-                  // 1. Ensure user exists (idempotent create)
-                  await callBackend("/users", "POST", { user_code: requestParameters.userCode });
-                  // 2. Call Casino API GetGameUrl
-                  const casinoResponse = await callCasino("GetGameUrl", {
-                    userCode: requestParameters.userCode,
-                    vendorCode: requestParameters.vendorCode,
-                    gameCode: requestParameters.gameCode
-                  });
-                  // 3. Store the full response in backend launch-history
-                  responseData = await callBackend("/launch-history", "POST", {
-                    user_code: requestParameters.userCode,
-                    vendor_code: requestParameters.vendorCode,
-                    game_code: requestParameters.gameCode,
-                    response: casinoResponse
-                  });
-                  break;
-                case "ListLaunchHistory":
-                  responseData = await callBackend("/launch-history", "GET");
-                  break;
-                case "DeleteLaunchHistory":
-                  responseData = await callBackend(`/launch-history/${requestParameters.id}`, "DELETE");
-                  // For DELETE, we might want to return success message
-                  if (responseData === null || (typeof responseData === 'object' && Object.keys(responseData).length === 0)) {
-                    responseData = { status: "success", message: "Deleted" };
-                  }
-                  break;
-                default:
-                  throw new Error(`Unknown backend endpoint: ${methodName}`);
-              }
-            } else {
-              // Casino API call
-              responseData = await callCasino(methodName, requestParameters);
-            }
-            renderApiResult(outputElementId, responseData);
+            const responseData = await callCasino(methodName, requestParameters);
+            renderApiResult("out-freeround", responseData);
           } catch (error) {
-            renderApiResult(outputElementId, null, error.message);
+            renderApiResult("out-freeround", null, error.message);
           }
         });
       });
+
+      // ================= LAUNCH HISTORY =================
+      async function loadLaunchHistory() {
+        const tbody = document.getElementById("launchHistoryTableBody");
+        tbody.innerHTML = `<tr><td colspan="9" class="text-neutral-500 mono text-xs">memuat...</td></tr>`;
+        try {
+          const items = await callBackend("/launch-history", "GET");
+          if (!items.length) {
+            tbody.innerHTML = `<tr><td colspan="9" class="text-neutral-500 mono text-xs">belum ada riwayat</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = items.map((item, index) => {
+            const response = item.response || {};
+            return `
+              <tr>
+                <td>${index + 1}</td>
+                <td>${escapeHtml(item.user_code)}</td>
+                <td class="mono text-xs">${escapeHtml(item.vendor_code)}</td>
+                <td class="mono text-xs">${escapeHtml(item.game_code)}</td>
+                <td class="mono">${escapeHtml(response.status)}</td>
+                <td class="text-xs">${escapeHtml(response.msg)}</td>
+                <td class="mono text-xs text-neutral-500">${escapeHtml(response.errorId ?? "-")}</td>
+                <td class="text-xs">${formatDateTime(item.created_at)}</td>
+                <td><button class="btn-ghost" data-delete-history="${escapeHtml(item._id)}">Hapus</button></td>
+              </tr>
+            `;
+          }).join("");
+          tbody.querySelectorAll("[data-delete-history]").forEach(button => {
+            button.addEventListener("click", async () => {
+              if (!confirm("Hapus riwayat ini?")) return;
+              try {
+                await callBackend(`/launch-history/${button.dataset.deleteHistory}`, "DELETE");
+                loadLaunchHistory();
+              } catch (error) {
+                alert("Gagal menghapus: " + error.message);
+              }
+            });
+          });
+        } catch (error) {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-red-400 mono text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
+        }
+      }
 
       // Muat info agent buat header sidebar
       async function loadAgentInfo() {
@@ -325,8 +673,8 @@
         try {
           const responseData = await callCasino("GetAgentInfo", {});
 
-          if (responseData.balances) {
-            const balanceValue = responseData.balances.IDR ?? Object.values(responseData.balances)[0];
+          if (responseData.balance) {
+            const balanceValue = responseData.balance.IDR ?? Object.values(responseData.balance)[0];
             balanceStatElement.textContent = "IDR " + balanceValue;
           } else {
             balanceStatElement.textContent = responseData.msg || "Error";
