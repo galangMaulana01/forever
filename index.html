@@ -258,8 +258,8 @@
       <form id="formUserAction" class="modal-box space-y-3">
         <h3 class="text-sm font-medium text-neutral-200">Kelola Balance — <span id="userActionUserCode" class="mono"></span></h3>
         <div class="flex gap-4 text-sm">
-          <label class="flex items-center gap-1.5"><input type="radio" name="action" value="deposit" checked> Deposit</label>
-          <label class="flex items-center gap-1.5"><input type="radio" name="action" value="withdraw"> Withdraw</label>
+          <label class="flex items-center gap-1.5"><input type="radio" name="actionType" value="deposit" checked> Deposit</label>
+          <label class="flex items-center gap-1.5"><input type="radio" name="actionType" value="withdraw"> Withdraw</label>
         </div>
         <input class="f-input" name="amount" type="number" step="any" min="0" placeholder="amount" required>
         <div class="flex justify-end gap-2">
@@ -422,7 +422,7 @@
       document.getElementById("formUserAction").addEventListener("submit", async event => {
         event.preventDefault();
         const userCode = event.target.dataset.userCode;
-        const action = event.target.action.value;
+        const action = event.target.actionType.value;
         const amount = Number(event.target.amount.value);
         try {
           await callBackend(`/users/${encodeURIComponent(userCode)}/${action}`, "POST", { amount });
