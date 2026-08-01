@@ -1,8 +1,7 @@
 import os
+from datetime import datetime, timezone
 
 import httpx
-from bson import ObjectId
-from bson.errors import InvalidId
 from dotenv import load_dotenv
 from fastapi import Body, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,6 +13,11 @@ CASINO_BASE_URL = "https://api.aicvgdbi.win/api/casinoapi"
 CASINO_TOKEN = os.environ["CASINO_TOKEN"]
 CASINO_AGENT = os.environ["CASINO_AGENT"]
 CURRENCY_CODE = "IDR"
+
+# Method casino yang mengubah state (bukan sekadar baca) - ini yang dicatat ke
+# activity log lewat /casino proxy. Method read-only (GetVendors, ReportByDate
+# polling tiap 5 detik, dst) sengaja tidak dicatat supaya log tidak penuh noise.
+MUTATING_CASINO_METHODS = {"ApplyFreeRound", "CancelFreeRound"}
 
 mongo_client = MongoClient(os.environ["DATABASE_URL"])
 db = mongo_client.get_default_database()
@@ -33,6 +37,15 @@ def serialize(document):
     return document
 
 
+def log_activity(action: str, detail: dict, result: dict = None):
+    db.activity_log.insert_one({
+        "action": action,
+        "detail": detail,
+        "result": result,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    })
+
+
 def call_casino(method: str, params: dict):
     body = {"method": method, "token": CASINO_TOKEN, "agentCode": CASINO_AGENT, **params}
     body = {key: value for key, value in body.items() if value not in ("", None)}
@@ -44,22 +57,16 @@ def call_casino(method: str, params: dict):
     return response.json()
 
 
-def call_casino_or_raise(method: str, params: dict, ignore_status=()):
-    data = call_casino(method, params)
-    if data.get("status") not in (0, *ignore_status):
-        raise HTTPException(status_code=400, detail=data.get("msg", f"{method} failed"))
-    return data
-
-
 @app.post("/users")
 def create_user(payload: dict = Body(...)):
     user_code = payload.get("user_code")
     if not user_code:
         raise HTTPException(status_code=400, detail="user_code is required")
+    data = call_casino("CreateUser", {"userCode": user_code})
+    log_activity("CreateUser", {"userCode": user_code}, data)
     # A user that already exists upstream is fine here - we just want to make
     # sure the vendor knows about them. Vendor returns "Usercode already exist."
     # or the documented DUPLICATE_USER (status 7); accept both.
-    data = call_casino("CreateUser", {"userCode": user_code})
     status = data.get("status")
     msg = str(data.get("msg", ""))
     already_exists = "already exist" in msg.lower() or "duplicate" in msg.lower()
@@ -90,7 +97,11 @@ def deposit_user(user_code: str, payload: dict = Body(...)):
     amount = payload.get("amount")
     if amount is None:
         raise HTTPException(status_code=400, detail="amount is required")
-    return call_casino_or_raise("Deposit", {"userCode": user_code, "currencyCode": CURRENCY_CODE, "amount": amount})
+    data = call_casino("Deposit", {"userCode": user_code, "currencyCode": CURRENCY_CODE, "amount": amount})
+    log_activity("Deposit", {"userCode": user_code, "amount": amount}, data)
+    if data.get("status") != 0:
+        raise HTTPException(status_code=400, detail=data.get("msg", "Deposit failed"))
+    return data
 
 
 @app.post("/users/{user_code}/withdraw")
@@ -98,7 +109,11 @@ def withdraw_user(user_code: str, payload: dict = Body(...)):
     amount = payload.get("amount")
     if amount is None:
         raise HTTPException(status_code=400, detail="amount is required")
-    return call_casino_or_raise("Withdraw", {"userCode": user_code, "currencyCode": CURRENCY_CODE, "amount": amount})
+    data = call_casino("Withdraw", {"userCode": user_code, "currencyCode": CURRENCY_CODE, "amount": amount})
+    log_activity("Withdraw", {"userCode": user_code, "amount": amount}, data)
+    if data.get("status") != 0:
+        raise HTTPException(status_code=400, detail=data.get("msg", "Withdraw failed"))
+    return data
 
 
 @app.get("/vendors")
@@ -116,36 +131,15 @@ def casino_proxy(payload: dict = Body(...)):
     method = payload.pop("method", None)
     if not method:
         raise HTTPException(status_code=400, detail="method is required")
-    return call_casino(method, payload)
+    data = call_casino(method, payload)
+    if method in MUTATING_CASINO_METHODS:
+        log_activity(method, payload, data)
+    return data
 
 
-@app.post("/launch-history")
-def create_launch_history(payload: dict = Body(...)):
-    doc = {
-        "user_code": payload.get("user_code"),
-        "vendor_code": payload.get("vendor_code"),
-        "game_code": payload.get("game_code"),
-        "response": payload.get("response"),
-    }
-    result = db.launch_history.insert_one(doc)
-    return serialize(db.launch_history.find_one({"_id": result.inserted_id}))
-
-
-@app.get("/launch-history")
-def list_launch_history():
-    return [serialize(item) for item in db.launch_history.find().sort("_id", -1)]
-
-
-@app.delete("/launch-history/{item_id}")
-def delete_launch_history(item_id: str):
-    try:
-        object_id = ObjectId(item_id)
-    except InvalidId as error:
-        raise HTTPException(status_code=400, detail="Invalid id") from error
-    result = db.launch_history.delete_one({"_id": object_id})
-    if result.deleted_count == 0:
-        raise HTTPException(status_code=404, detail="Not found")
-    return {"status": "success", "message": "Deleted"}
+@app.get("/logs")
+def list_logs(limit: int = 500):
+    return [serialize(item) for item in db.activity_log.find().sort("_id", -1).limit(limit)]
 
 
 if __name__ == "__main__":

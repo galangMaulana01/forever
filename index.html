@@ -12,9 +12,18 @@
     <div class="flex min-h-screen">
       <!-- Sidebar -->
       <aside id="sidebar" class="w-56 shrink-0 border-r border-neutral-200 bg-white flex flex-col fixed h-screen z-20 -translate-x-full lg:translate-x-0 transition-transform">
-        <div class="flex flex-col items-start justify-center gap-0.5 px-4 py-3 border-b border-neutral-200">
-          <span id="statAgentCode" class="text-sm font-semibold text-neutral-900 tracking-tight"></span>
-          <span id="statBalance" class="text-xs font-semibold text-teal-700 tracking-tight"></span>
+        <!-- Logo -->
+        <div class="flex items-center gap-2 px-4 py-3 border-b border-neutral-200">
+          <svg viewBox="0 0 32 32" fill="none" class="w-7 h-7 shrink-0" aria-hidden="true">
+            <rect width="32" height="32" rx="9" fill="#14b8a6"/>
+            <path d="M9 22V10l7 7 7-7v12" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="text-sm font-semibold text-neutral-900 tracking-tight">Master Control</span>
+        </div>
+        <!-- Avatar + welcome -->
+        <div class="flex flex-col items-center text-center gap-2 px-4 py-4 border-b border-neutral-200">
+          <div id="avatarInitial" class="w-10 h-10 rounded-full bg-teal-500 text-white flex items-center justify-center text-sm font-semibold"></div>
+          <p class="text-xs text-neutral-500 leading-snug">Welcome back,<br><span id="statAgentCode" class="text-sm font-semibold text-neutral-900"></span></p>
         </div>
         <nav id="navigationList" class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5 text-sm"></nav>
       </aside>
@@ -30,6 +39,13 @@
               <h1 id="pageTitle" class="text-sm font-semibold text-neutral-900"></h1>
             </div>
           </div>
+          <div class="flex items-center gap-3">
+            <span id="statBalance" class="text-sm font-semibold text-teal-700 tracking-tight"></span>
+            <svg width="28" height="20" viewBox="0 0 28 20" class="rounded border border-neutral-200 shrink-0" aria-label="Bendera Indonesia" role="img">
+              <rect width="28" height="10" fill="#CE1126"/>
+              <rect y="10" width="28" height="10" fill="#FFFFFF"/>
+            </svg>
+          </div>
         </header>
 
         <main class="p-4 sm:p-6 max-w-6xl">
@@ -43,7 +59,7 @@
                 <table class="w-full text-sm">
                   <thead>
                     <tr class="bg-neutral-50 border-b border-neutral-200">
-                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">ID</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">No</th>
                       <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Nama User</th>
                       <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Balance</th>
                       <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Action</th>
@@ -64,10 +80,7 @@
               <select id="gameListVendorFilter" class="w-full max-w-xs bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400">
                 <option value="all">Semua Vendor</option>
               </select>
-              <select id="gameListFilter" class="w-full max-w-xs bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400">
-                <option value="all">Semua Tipe (All)</option>
-              </select>
-              <button id="btnReloadGameList" class="border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-sm font-medium px-4 py-2 rounded-lg transition-colors" type="button">Muat Ulang</button>
+              <input id="gameListSearch" type="text" placeholder="Cari nama atau kode game..." class="flex-1 min-w-[200px] max-w-xs bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400">
               <span id="gameListStatus" class="text-xs text-neutral-500"></span>
             </div>
             <div class="border border-neutral-200 rounded-xl overflow-hidden bg-white">
@@ -126,30 +139,26 @@
             </div>
           </section>
 
-          <!-- ================= LAUNCH HISTORY ================= -->
-          <section class="section hidden" data-section="launch-history">
+          <!-- ================= LOG ================= -->
+          <section class="section hidden" data-section="log">
             <div class="border border-neutral-200 rounded-xl overflow-hidden bg-white">
               <div class="overflow-x-auto">
                 <table class="w-full text-sm">
                   <thead>
                     <tr class="bg-neutral-50 border-b border-neutral-200">
                       <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">No</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">User</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Vendor</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Game Code</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Status</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Message</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Error ID</th>
                       <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Waktu</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Action</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Aktivitas</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Status</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Detail</th>
                     </tr>
                   </thead>
-                  <tbody id="launchHistoryTableBody">
-                    <tr><td colspan="9" class="px-4 py-3 text-neutral-400 font-['JetBrains_Mono'] text-xs">memuat...</td></tr>
+                  <tbody id="logsTableBody">
+                    <tr><td colspan="5" class="px-4 py-3 text-neutral-400 font-['JetBrains_Mono'] text-xs">memuat...</td></tr>
                   </tbody>
                 </table>
               </div>
-              <div id="launchHistoryPagination" class="border-t border-neutral-200"></div>
+              <div id="logsPagination" class="border-t border-neutral-200"></div>
             </div>
           </section>
         </main>
@@ -229,7 +238,7 @@
         { sectionKey: "users", label: "User" },
         { sectionKey: "gamelist", label: "Game List" },
         { sectionKey: "gamecontrol", label: "Game Control" },
-        { sectionKey: "launch-history", label: "Launch Game History" },
+        { sectionKey: "log", label: "Log" },
       ];
 
       const navigationListElement = document.getElementById("navigationList");
@@ -259,7 +268,7 @@
 
         if (sectionKey === "users") loadUsers();
         if (sectionKey === "gamelist") loadAllGames();
-        if (sectionKey === "launch-history") loadLaunchHistory();
+        if (sectionKey === "log") loadLogs();
         // Live wager feed otomatis jalan/berhenti sesuai section aktif (hemat rate-limit vendor)
         if (sectionKey === "gamecontrol") startWagerFeed(); else stopWagerFeed();
       }
@@ -331,9 +340,24 @@
         return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${variants[variant] || variants.neutral}">${escapeHtml(text)}</span>`;
       }
 
+      function emptyStateHtml(message) {
+        return `
+          <div class="flex flex-col items-center justify-center gap-3 py-12 text-center">
+            <svg viewBox="0 0 64 64" fill="none" class="w-14 h-14 text-neutral-300" aria-hidden="true">
+              <rect x="8" y="20" width="48" height="28" rx="14" stroke="currentColor" stroke-width="3"/>
+              <path d="M20 30v8M16 34h8" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="44" cy="30" r="2.5" fill="currentColor"/>
+              <circle cx="38" cy="36" r="2.5" fill="currentColor"/>
+              <circle cx="50" cy="36" r="2.5" fill="currentColor"/>
+            </svg>
+            <p class="text-sm text-neutral-500">${escapeHtml(message)}</p>
+          </div>
+        `;
+      }
+
       // ================= PAGINATION =================
       const PAGE_SIZE = 25;
-      const paginationState = { users: 1, gameList: 1, launchHistory: 1 };
+      const paginationState = { users: 1, gameList: 1, logs: 1 };
 
       function paginate(items, key) {
         const total = items.length;
@@ -379,7 +403,6 @@
       let loadedUsers = [];
       const outlineActionBtn = "border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors";
       const solidActionBtnSmall = "bg-teal-500 hover:bg-teal-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors";
-      const destructiveActionBtn = "border border-red-200 text-red-600 hover:bg-red-50 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors";
 
       function renderUsersTable() {
         const tbody = document.getElementById("usersTableBody");
@@ -388,10 +411,10 @@
           renderPagination("usersPagination", "users", 0, renderUsersTable);
           return;
         }
-        const { pageItems } = paginate(loadedUsers, "users");
-        tbody.innerHTML = pageItems.map(user => `
+        const { pageItems, start } = paginate(loadedUsers, "users");
+        tbody.innerHTML = pageItems.map((user, index) => `
           <tr class="border-t border-neutral-100 hover:bg-neutral-50">
-            <td class="px-4 py-3 ${MONO} text-xs text-neutral-400">${escapeHtml(user._id)}</td>
+            <td class="px-4 py-3 text-neutral-500">${start + index + 1}</td>
             <td class="px-4 py-3 text-neutral-900">${escapeHtml(user.user_code)}</td>
             <td class="px-4 py-3 ${MONO} text-neutral-900">${escapeHtml(user.total_balance ?? 0)}</td>
             <td class="px-4 py-3"><button class="${outlineActionBtn}" data-user-action="${escapeHtml(user.user_code)}">Deposit/Withdraw</button></td>
@@ -495,17 +518,9 @@
       let gameListLoaded = false;
       let gameListLoading = false;
 
-      function rebuildGameFilterOptions() {
-        const typeSelect = document.getElementById("gameListFilter");
+      function rebuildVendorFilterOptions() {
         const vendorSelect = document.getElementById("gameListVendorFilter");
-        const currentType = typeSelect.value || "all";
         const currentVendor = vendorSelect.value || "all";
-
-        const uniqueTypes = Array.from(new Set(loadedGames.map(game => game.gameType))).sort((a, b) => a - b);
-        typeSelect.innerHTML = `<option value="all">Semua Tipe (All)</option>` + uniqueTypes.map(type =>
-          `<option value="${escapeHtml(type)}">${escapeHtml(gameTypeLabel(type))}</option>`
-        ).join("");
-        typeSelect.value = uniqueTypes.map(String).includes(currentType) || currentType === "all" ? currentType : "all";
 
         const vendorsMap = new Map();
         loadedGames.forEach(game => {
@@ -519,11 +534,15 @@
       }
 
       function getFilteredGames() {
-        const typeFilter = document.getElementById("gameListFilter").value;
         const vendorFilter = document.getElementById("gameListVendorFilter").value;
+        const searchTerm = document.getElementById("gameListSearch").value.trim().toLowerCase();
         return loadedGames.filter(game => {
-          if (typeFilter !== "all" && String(game.gameType) !== typeFilter) return false;
           if (vendorFilter !== "all" && game.vendorCode !== vendorFilter) return false;
+          if (searchTerm) {
+            const name = parseLocalizedField(game.gameName, game.gameCode).toLowerCase();
+            const code = String(game.gameCode || "").toLowerCase();
+            if (!name.includes(searchTerm) && !code.includes(searchTerm)) return false;
+          }
           return true;
         });
       }
@@ -583,7 +602,7 @@
           loadedGames = perVendor.flat();
           gameListLoaded = true;
           paginationState.gameList = 1;
-          rebuildGameFilterOptions();
+          rebuildVendorFilterOptions();
           renderGameListTable();
           status.textContent = `${loadedGames.length} game dari ${vendors.length} vendor`;
         } catch (error) {
@@ -594,9 +613,8 @@
         }
       }
 
-      document.getElementById("gameListFilter").addEventListener("change", () => { paginationState.gameList = 1; renderGameListTable(); });
       document.getElementById("gameListVendorFilter").addEventListener("change", () => { paginationState.gameList = 1; renderGameListTable(); });
-      document.getElementById("btnReloadGameList").addEventListener("click", () => loadAllGames(true));
+      document.getElementById("gameListSearch").addEventListener("input", () => { paginationState.gameList = 1; renderGameListTable(); });
 
       // ================= GAME CONTROL: LIVE WAGER FEED (auto, 5 detik) =================
       let wagerFeedIntervalId = null;
@@ -624,7 +642,7 @@
           .sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))
           .slice(0, 100);
         if (!wagers.length) {
-          tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">belum ada wager terbaru</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="10">${emptyStateHtml("Tidak ada yang bermain sekarang")}</td></tr>`;
           return;
         }
         tbody.innerHTML = wagers.map(wager => `
@@ -741,66 +759,75 @@
         }
       });
 
-      // ================= LAUNCH HISTORY =================
-      let loadedLaunchHistory = [];
+      // ================= LOG =================
+      let loadedLogs = [];
+      const LOG_ACTION_VARIANT = {
+        CreateUser: "accent",
+        Deposit: "success",
+        Withdraw: "warning",
+        ApplyFreeRound: "accent",
+        CancelFreeRound: "neutral",
+      };
 
-      function renderLaunchHistoryTable() {
-        const tbody = document.getElementById("launchHistoryTableBody");
-        if (!loadedLaunchHistory.length) {
-          tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">belum ada riwayat</td></tr>`;
-          renderPagination("launchHistoryPagination", "launchHistory", 0, renderLaunchHistoryTable);
+      function formatLogDetail(log) {
+        const detail = log.detail || {};
+        const result = log.result || {};
+        const parts = [];
+        if (detail.userCode) parts.push(`user: ${detail.userCode}`);
+        if (detail.amount !== undefined) parts.push(`amount: ${detail.amount}`);
+        if (detail.vendorCode) parts.push(`vendor: ${detail.vendorCode}`);
+        if (detail.gameCode) parts.push(`game: ${detail.gameCode}`);
+        if (detail.betAmount !== undefined) parts.push(`bet: ${detail.betAmount}`);
+        if (detail.spinCount !== undefined) parts.push(`spin: ${detail.spinCount}`);
+        if (result.balance !== undefined) parts.push(`balance: ${result.balance}`);
+        if (result.msg) parts.push(`(${result.msg})`);
+        return parts.join(", ") || "-";
+      }
+
+      function renderLogsTable() {
+        const tbody = document.getElementById("logsTableBody");
+        if (!loadedLogs.length) {
+          tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">belum ada aktivitas</td></tr>`;
+          renderPagination("logsPagination", "logs", 0, renderLogsTable);
           return;
         }
-        const { pageItems, start } = paginate(loadedLaunchHistory, "launchHistory");
-        tbody.innerHTML = pageItems.map((item, index) => {
-          const response = item.response || {};
-          const statusBadge = response.status === 0 ? badgeHtml("Sukses", "success") : badgeHtml("Gagal", "error");
+        const { pageItems, start } = paginate(loadedLogs, "logs");
+        tbody.innerHTML = pageItems.map((log, index) => {
+          const succeeded = log.result?.status === 0;
+          const statusBadge = badgeHtml(succeeded ? "Sukses" : "Gagal", succeeded ? "success" : "error");
           return `
             <tr class="border-t border-neutral-100 hover:bg-neutral-50">
               <td class="px-4 py-3 text-neutral-500">${start + index + 1}</td>
-              <td class="px-4 py-3 text-neutral-900">${escapeHtml(item.user_code)}</td>
-              <td class="px-4 py-3 ${MONO} text-xs text-neutral-500">${escapeHtml(item.vendor_code)}</td>
-              <td class="px-4 py-3 ${MONO} text-xs text-neutral-500">${escapeHtml(item.game_code)}</td>
+              <td class="px-4 py-3 text-xs text-neutral-500">${formatDateTime(log.created_at)}</td>
+              <td class="px-4 py-3">${badgeHtml(log.action, LOG_ACTION_VARIANT[log.action] || "neutral")}</td>
               <td class="px-4 py-3">${statusBadge}</td>
-              <td class="px-4 py-3 text-xs text-neutral-600">${escapeHtml(response.msg)}</td>
-              <td class="px-4 py-3 ${MONO} text-xs text-neutral-400">${escapeHtml(response.errorId ?? "-")}</td>
-              <td class="px-4 py-3 text-xs text-neutral-500">${formatDateTime(item.created_at)}</td>
-              <td class="px-4 py-3"><button class="${destructiveActionBtn}" data-delete-history="${escapeHtml(item._id)}">Hapus</button></td>
+              <td class="px-4 py-3 ${MONO} text-xs text-neutral-600">${escapeHtml(formatLogDetail(log))}</td>
             </tr>
           `;
         }).join("");
-        tbody.querySelectorAll("[data-delete-history]").forEach(button => {
-          button.addEventListener("click", async () => {
-            if (!confirm("Hapus riwayat ini?")) return;
-            try {
-              await callBackend(`/launch-history/${button.dataset.deleteHistory}`, "DELETE");
-              loadLaunchHistory();
-            } catch (error) {
-              alert("Gagal menghapus: " + error.message);
-            }
-          });
-        });
-        renderPagination("launchHistoryPagination", "launchHistory", loadedLaunchHistory.length, renderLaunchHistoryTable);
+        renderPagination("logsPagination", "logs", loadedLogs.length, renderLogsTable);
       }
 
-      async function loadLaunchHistory() {
-        const tbody = document.getElementById("launchHistoryTableBody");
-        tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">memuat...</td></tr>`;
-        document.getElementById("launchHistoryPagination").innerHTML = "";
+      async function loadLogs() {
+        const tbody = document.getElementById("logsTableBody");
+        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">memuat...</td></tr>`;
+        document.getElementById("logsPagination").innerHTML = "";
         try {
-          loadedLaunchHistory = await callBackend("/launch-history", "GET");
-          renderLaunchHistoryTable();
+          loadedLogs = await callBackend("/logs", "GET");
+          renderLogsTable();
         } catch (error) {
-          tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-3 text-red-600 ${MONO} text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-3 text-red-600 ${MONO} text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
         }
       }
 
-      // Muat info agent buat header sidebar
+      // Muat info agent buat sidebar (avatar + welcome) & header (balance)
       async function loadAgentInfo() {
         const agentCodeStatElement = document.getElementById("statAgentCode");
         const balanceStatElement = document.getElementById("statBalance");
+        const avatarElement = document.getElementById("avatarInitial");
 
         agentCodeStatElement.textContent = agentCode;
+        avatarElement.textContent = agentCode.charAt(0).toUpperCase();
         balanceStatElement.classList.add("animate-pulse");
         balanceStatElement.textContent = "memuat...";
 
