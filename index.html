@@ -86,30 +86,26 @@
 
           <!-- ================= GAME LIST ================= -->
           <section class="section" data-section="gamelist">
-            <div class="border border-neutral-800 rounded-xl p-4 space-y-3">
-              <div class="grid sm:grid-cols-3 gap-2">
-                <select id="gameListVendor" class="f-input">
-                  <option value="">Pilih vendor...</option>
-                </select>
-                <select id="gameListFilter" class="f-input">
-                  <option value="all">Semua Tipe (All)</option>
-                  <option value="1">Slot</option>
-                  <option value="2">Live Casino</option>
-                </select>
-                <button id="btnLoadGameList" class="btn-run" type="button">Muat Game List</button>
-              </div>
+            <div class="flex items-center gap-3 mb-3">
+              <select id="gameListFilter" class="f-input max-w-xs">
+                <option value="all">Semua Tipe (All)</option>
+              </select>
+              <button id="btnReloadGameList" class="btn-ghost" type="button">Muat Ulang</button>
+              <span id="gameListStatus" class="text-xs text-neutral-500"></span>
             </div>
-            <div class="mt-4 border border-neutral-800 rounded-xl overflow-x-auto">
+            <div class="border border-neutral-800 rounded-xl overflow-x-auto">
               <table class="data-table">
                 <thead>
                   <tr>
-                    <th>No / Game Type</th>
+                    <th>No</th>
+                    <th>Game Type</th>
+                    <th>Vendor</th>
                     <th>Game Code / Name</th>
                     <th>Image</th>
                   </tr>
                 </thead>
                 <tbody id="gameListTableBody">
-                  <tr><td colspan="3" class="text-neutral-500 mono text-xs">pilih vendor lalu klik "Muat Game List"</td></tr>
+                  <tr><td colspan="5" class="text-neutral-500 mono text-xs">memuat...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -305,7 +301,7 @@
         }
 
         if (sectionKey === "users") loadUsers();
-        if (sectionKey === "gamelist") loadVendorsForGameList();
+        if (sectionKey === "gamelist") loadAllGames();
         if (sectionKey === "launch-history") loadLaunchHistory();
         // Live wager feed hanya jalan kalau section gamecontrol aktif (hemat rate-limit vendor)
         if (sectionKey !== "gamecontrol") stopWagerFeed();
@@ -435,21 +431,6 @@
       });
 
       // ================= GAME LIST =================
-      async function loadVendorsForGameList() {
-        const select = document.getElementById("gameListVendor");
-        if (select.dataset.loaded) return;
-        try {
-          const response = await callBackend("/vendors", "GET");
-          const vendors = response.vendors || [];
-          select.innerHTML = `<option value="">Pilih vendor...</option>` + vendors.map(vendor =>
-            `<option value="${escapeHtml(vendor.vendorCode)}">${escapeHtml(vendor.vendorName)} (${escapeHtml(vendor.vendorCode)})</option>`
-          ).join("");
-          select.dataset.loaded = "1";
-        } catch (error) {
-          select.innerHTML = `<option value="">Gagal memuat vendor</option>`;
-        }
-      }
-
       function parseLocalizedField(value, fallback) {
         if (!value) return fallback;
         try {
@@ -460,20 +441,39 @@
         }
       }
 
+      const GAME_TYPE_LABELS = { 1: "Slot", 2: "Live Casino" };
+      const gameTypeLabel = type => GAME_TYPE_LABELS[type] || `Type ${type}`;
+
       let loadedGames = [];
+      let gameListLoaded = false;
+      let gameListLoading = false;
+
+      function rebuildGameTypeFilterOptions() {
+        const select = document.getElementById("gameListFilter");
+        const current = select.value || "all";
+        const uniqueTypes = Array.from(new Set(loadedGames.map(game => game.gameType))).sort((a, b) => a - b);
+        select.innerHTML = `<option value="all">Semua Tipe (All)</option>` + uniqueTypes.map(type =>
+          `<option value="${escapeHtml(type)}">${escapeHtml(gameTypeLabel(type))}</option>`
+        ).join("");
+        select.value = uniqueTypes.map(String).includes(current) || current === "all" ? current : "all";
+      }
 
       function renderGameListTable() {
         const tbody = document.getElementById("gameListTableBody");
         const filter = document.getElementById("gameListFilter").value;
         const filtered = filter === "all" ? loadedGames : loadedGames.filter(game => String(game.gameType) === filter);
         if (!filtered.length) {
-          tbody.innerHTML = `<tr><td colspan="3" class="text-neutral-500 mono text-xs">tidak ada game untuk filter ini</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" class="text-neutral-500 mono text-xs">tidak ada game untuk filter ini</td></tr>`;
           return;
         }
-        const gameTypeLabel = type => type === 1 ? "Slot" : type === 2 ? "Live Casino" : `Type ${type}`;
         tbody.innerHTML = filtered.map((game, index) => `
           <tr>
-            <td><span class="pill">${escapeHtml(gameTypeLabel(game.gameType))}</span> <span class="mono text-xs text-neutral-500">#${index + 1}</span></td>
+            <td class="mono text-xs text-neutral-500">${index + 1}</td>
+            <td><span class="pill">${escapeHtml(gameTypeLabel(game.gameType))}</span></td>
+            <td>
+              <div>${escapeHtml(game.vendorName)}</div>
+              <div class="mono text-xs text-neutral-500">${escapeHtml(game.vendorCode)}</div>
+            </td>
             <td>
               <div>${escapeHtml(parseLocalizedField(game.gameName, game.gameCode))}</div>
               <div class="mono text-xs text-neutral-500">${escapeHtml(game.gameCode)}</div>
@@ -483,24 +483,46 @@
         `).join("");
       }
 
-      document.getElementById("btnLoadGameList").addEventListener("click", async () => {
-        const vendorCode = document.getElementById("gameListVendor").value;
+      async function loadAllGames(force = false) {
+        if (gameListLoading) return;
+        if (gameListLoaded && !force) return;
+        gameListLoading = true;
         const tbody = document.getElementById("gameListTableBody");
-        if (!vendorCode) {
-          tbody.innerHTML = `<tr><td colspan="3" class="text-neutral-500 mono text-xs">pilih vendor dulu</td></tr>`;
-          return;
-        }
-        tbody.innerHTML = `<tr><td colspan="3" class="text-neutral-500 mono text-xs">memuat...</td></tr>`;
+        const status = document.getElementById("gameListStatus");
+        tbody.innerHTML = `<tr><td colspan="5" class="text-neutral-500 mono text-xs">memuat vendor...</td></tr>`;
+        status.textContent = "";
         try {
-          const response = await callBackend(`/games?vendor=${encodeURIComponent(vendorCode)}`, "GET");
-          loadedGames = response.vendorGames || [];
+          const vendorResponse = await callBackend("/vendors", "GET");
+          const vendors = vendorResponse.vendors || [];
+          status.textContent = `memuat game dari ${vendors.length} vendor...`;
+          const perVendor = await Promise.all(vendors.map(async vendor => {
+            const vendorName = parseLocalizedField(vendor.vendorName, vendor.vendorCode);
+            try {
+              const gamesResponse = await callBackend(`/games?vendor=${encodeURIComponent(vendor.vendorCode)}`, "GET");
+              return (gamesResponse.vendorGames || []).map(game => ({
+                ...game,
+                vendorCode: vendor.vendorCode,
+                vendorName,
+              }));
+            } catch (_) {
+              return [];
+            }
+          }));
+          loadedGames = perVendor.flat();
+          gameListLoaded = true;
+          rebuildGameTypeFilterOptions();
           renderGameListTable();
+          status.textContent = `${loadedGames.length} game dari ${vendors.length} vendor`;
         } catch (error) {
-          tbody.innerHTML = `<tr><td colspan="3" class="text-red-400 mono text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" class="text-red-400 mono text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
+          status.textContent = "";
+        } finally {
+          gameListLoading = false;
         }
-      });
+      }
 
       document.getElementById("gameListFilter").addEventListener("change", renderGameListTable);
+      document.getElementById("btnReloadGameList").addEventListener("click", () => loadAllGames(true));
 
       // ================= GAME CONTROL: LAUNCH GAME =================
       document.getElementById("formLaunchGame").addEventListener("submit", async event => {
