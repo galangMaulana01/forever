@@ -67,47 +67,56 @@
             <div class="flex justify-end mb-3">
               <button id="btnOpenCreateUser" class="btn-run" type="button">+ Buat User</button>
             </div>
-            <div class="border border-neutral-800 rounded-xl overflow-x-auto">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Nama User</th>
-                    <th>Balance</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="usersTableBody">
-                  <tr><td colspan="4" class="text-neutral-500 mono text-xs">memuat...</td></tr>
-                </tbody>
-              </table>
+            <div class="border border-neutral-800 rounded-xl overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Nama User</th>
+                      <th>Balance</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersTableBody">
+                    <tr><td colspan="4" class="text-neutral-500 mono text-xs">memuat...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div id="usersPagination" class="border-t border-neutral-800"></div>
             </div>
           </section>
 
           <!-- ================= GAME LIST ================= -->
           <section class="section" data-section="gamelist">
-            <div class="flex items-center gap-3 mb-3">
+            <div class="flex flex-wrap items-center gap-3 mb-3">
+              <select id="gameListVendorFilter" class="f-input max-w-xs">
+                <option value="all">Semua Vendor</option>
+              </select>
               <select id="gameListFilter" class="f-input max-w-xs">
                 <option value="all">Semua Tipe (All)</option>
               </select>
               <button id="btnReloadGameList" class="btn-ghost" type="button">Muat Ulang</button>
               <span id="gameListStatus" class="text-xs text-neutral-500"></span>
             </div>
-            <div class="border border-neutral-800 rounded-xl overflow-x-auto">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>No</th>
-                    <th>Game Type</th>
-                    <th>Vendor</th>
-                    <th>Game Code / Name</th>
-                    <th>Image</th>
-                  </tr>
-                </thead>
-                <tbody id="gameListTableBody">
-                  <tr><td colspan="5" class="text-neutral-500 mono text-xs">memuat...</td></tr>
-                </tbody>
-              </table>
+            <div class="border border-neutral-800 rounded-xl overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>Game Type</th>
+                      <th>Vendor</th>
+                      <th>Game Code / Name</th>
+                      <th>Image</th>
+                    </tr>
+                  </thead>
+                  <tbody id="gameListTableBody">
+                    <tr><td colspan="5" class="text-neutral-500 mono text-xs">memuat...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div id="gameListPagination" class="border-t border-neutral-800"></div>
             </div>
           </section>
 
@@ -212,25 +221,28 @@
 
           <!-- ================= LAUNCH HISTORY ================= -->
           <section class="section" data-section="launch-history">
-            <div class="border border-neutral-800 rounded-xl overflow-x-auto">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>No</th>
-                    <th>User</th>
-                    <th>Vendor</th>
-                    <th>Game Code</th>
-                    <th>Status</th>
-                    <th>Message</th>
-                    <th>Error ID</th>
-                    <th>Waktu</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="launchHistoryTableBody">
-                  <tr><td colspan="9" class="text-neutral-500 mono text-xs">memuat...</td></tr>
-                </tbody>
-              </table>
+            <div class="border border-neutral-800 rounded-xl overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>No</th>
+                      <th>User</th>
+                      <th>Vendor</th>
+                      <th>Game Code</th>
+                      <th>Status</th>
+                      <th>Message</th>
+                      <th>Error ID</th>
+                      <th>Waktu</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="launchHistoryTableBody">
+                    <tr><td colspan="9" class="text-neutral-500 mono text-xs">memuat...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div id="launchHistoryPagination" class="border-t border-neutral-800"></div>
             </div>
           </section>
         </main>
@@ -306,7 +318,6 @@
         // Live wager feed hanya jalan kalau section gamecontrol aktif (hemat rate-limit vendor)
         if (sectionKey !== "gamecontrol") stopWagerFeed();
       }
-      showSection(navigationSections[0].sectionKey);
 
       document.getElementById("menuToggleButton").addEventListener("click", () => {
         document.getElementById("sidebar").classList.toggle("-translate-x-full");
@@ -370,63 +381,145 @@
         return date.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
       }
 
+      // ================= PAGINATION =================
+      const PAGE_SIZE = 25;
+      const paginationState = { users: 1, gameList: 1, launchHistory: 1 };
+
+      function paginate(items, key) {
+        const total = items.length;
+        const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        paginationState[key] = Math.min(Math.max(1, paginationState[key]), pageCount);
+        const page = paginationState[key];
+        const start = (page - 1) * PAGE_SIZE;
+        return { pageItems: items.slice(start, start + PAGE_SIZE), page, pageCount, total, start };
+      }
+
+      function renderPagination(containerId, key, total, onChange) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        const page = paginationState[key];
+        if (total <= PAGE_SIZE) {
+          container.innerHTML = `<div class="flex items-center justify-end px-4 py-2 text-xs text-neutral-500">Total: ${total}</div>`;
+          return;
+        }
+        const from = (page - 1) * PAGE_SIZE + 1;
+        const to = Math.min(page * PAGE_SIZE, total);
+        container.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2 text-xs">
+            <div class="text-neutral-500">Menampilkan ${from}-${to} dari ${total}</div>
+            <div class="flex items-center gap-2">
+              <button class="btn-ghost" ${page === 1 ? "disabled" : ""} data-page="prev">Sebelumnya</button>
+              <span class="text-neutral-400">Halaman ${page} / ${pageCount}</span>
+              <button class="btn-ghost" ${page === pageCount ? "disabled" : ""} data-page="next">Berikutnya</button>
+            </div>
+          </div>
+        `;
+        container.querySelectorAll("[data-page]").forEach(button => {
+          button.addEventListener("click", () => {
+            if (button.disabled) return;
+            paginationState[key] = button.dataset.page === "prev" ? page - 1 : page + 1;
+            onChange();
+          });
+        });
+      }
+
       // ================= USERS =================
+      let loadedUsers = [];
+
+      function renderUsersTable() {
+        const tbody = document.getElementById("usersTableBody");
+        if (!loadedUsers.length) {
+          tbody.innerHTML = `<tr><td colspan="4" class="text-neutral-500 mono text-xs">belum ada user</td></tr>`;
+          renderPagination("usersPagination", "users", 0, renderUsersTable);
+          return;
+        }
+        const { pageItems } = paginate(loadedUsers, "users");
+        tbody.innerHTML = pageItems.map(user => `
+          <tr>
+            <td class="mono text-xs text-neutral-500">${escapeHtml(user._id)}</td>
+            <td>${escapeHtml(user.user_code)}</td>
+            <td class="mono">${escapeHtml(user.total_balance ?? 0)}</td>
+            <td><button class="btn-ghost" data-user-action="${escapeHtml(user.user_code)}">Deposit/Withdraw</button></td>
+          </tr>
+        `).join("");
+        tbody.querySelectorAll("[data-user-action]").forEach(button => {
+          button.addEventListener("click", () => {
+            const userCode = button.dataset.userAction;
+            document.getElementById("userActionUserCode").textContent = userCode;
+            const form = document.getElementById("formUserAction");
+            form.dataset.userCode = userCode;
+            form.reset();
+            openModal("modalUserAction");
+          });
+        });
+        renderPagination("usersPagination", "users", loadedUsers.length, renderUsersTable);
+      }
+
       async function loadUsers() {
         const tbody = document.getElementById("usersTableBody");
         tbody.innerHTML = `<tr><td colspan="4" class="text-neutral-500 mono text-xs">memuat...</td></tr>`;
+        document.getElementById("usersPagination").innerHTML = "";
         try {
-          const users = await callBackend("/users", "GET");
-          if (!users.length) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-neutral-500 mono text-xs">belum ada user</td></tr>`;
-            return;
-          }
-          tbody.innerHTML = users.map(user => `
-            <tr>
-              <td class="mono text-xs text-neutral-500">${escapeHtml(user._id)}</td>
-              <td>${escapeHtml(user.user_code)}</td>
-              <td class="mono">${escapeHtml(user.total_balance ?? 0)}</td>
-              <td><button class="btn-ghost" data-user-action="${escapeHtml(user.user_code)}">Deposit/Withdraw</button></td>
-            </tr>
-          `).join("");
-          tbody.querySelectorAll("[data-user-action]").forEach(button => {
-            button.addEventListener("click", () => {
-              document.getElementById("userActionUserCode").textContent = button.dataset.userAction;
-              document.getElementById("formUserAction").dataset.userCode = button.dataset.userAction;
-              openModal("modalUserAction");
-            });
-          });
+          loadedUsers = await callBackend("/users", "GET");
+          renderUsersTable();
         } catch (error) {
           tbody.innerHTML = `<tr><td colspan="4" class="text-red-400 mono text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
         }
       }
 
-      document.getElementById("btnOpenCreateUser").addEventListener("click", () => openModal("modalCreateUser"));
+      document.getElementById("btnOpenCreateUser").addEventListener("click", () => {
+        document.getElementById("formCreateUser").reset();
+        openModal("modalCreateUser");
+      });
 
       document.getElementById("formCreateUser").addEventListener("submit", async event => {
         event.preventDefault();
-        const userCode = event.target.userCode.value;
+        const form = event.currentTarget;
+        const submitButton = form.querySelector("button[type=submit]");
+        const userCodeInput = form.querySelector('input[name="userCode"]');
+        const userCode = (userCodeInput?.value || "").trim();
+        if (!userCode) {
+          alert("Nama user tidak boleh kosong.");
+          return;
+        }
+        submitButton.disabled = true;
         try {
           await callBackend("/users", "POST", { user_code: userCode });
-          event.target.reset();
+          form.reset();
           closeModal("modalCreateUser");
-          loadUsers();
+          await loadUsers();
         } catch (error) {
+          console.error("Create user failed", error);
           alert("Gagal membuat user: " + error.message);
+        } finally {
+          submitButton.disabled = false;
         }
       });
 
       document.getElementById("formUserAction").addEventListener("submit", async event => {
         event.preventDefault();
-        const userCode = event.target.dataset.userCode;
-        const action = event.target.actionType.value;
-        const amount = Number(event.target.amount.value);
+        const form = event.currentTarget;
+        const submitButton = form.querySelector("button[type=submit]");
+        const userCode = form.dataset.userCode;
+        const checkedAction = form.querySelector('input[name="actionType"]:checked');
+        const action = checkedAction?.value;
+        const amountInput = form.querySelector('input[name="amount"]');
+        const amount = Number(amountInput?.value);
+        if (!userCode) { alert("User tidak ditemukan, tutup lalu buka lagi."); return; }
+        if (action !== "deposit" && action !== "withdraw") { alert("Pilih Deposit atau Withdraw."); return; }
+        if (!Number.isFinite(amount) || amount <= 0) { alert("Amount harus lebih dari 0."); return; }
+        submitButton.disabled = true;
         try {
           await callBackend(`/users/${encodeURIComponent(userCode)}/${action}`, "POST", { amount });
-          event.target.reset();
+          form.reset();
           closeModal("modalUserAction");
-          loadUsers();
+          await loadUsers();
         } catch (error) {
-          alert("Gagal memproses: " + error.message);
+          console.error(`${action} failed`, error);
+          alert(`Gagal ${action}: ` + error.message);
+        } finally {
+          submitButton.disabled = false;
         }
       });
 
@@ -448,27 +541,51 @@
       let gameListLoaded = false;
       let gameListLoading = false;
 
-      function rebuildGameTypeFilterOptions() {
-        const select = document.getElementById("gameListFilter");
-        const current = select.value || "all";
+      function rebuildGameFilterOptions() {
+        const typeSelect = document.getElementById("gameListFilter");
+        const vendorSelect = document.getElementById("gameListVendorFilter");
+        const currentType = typeSelect.value || "all";
+        const currentVendor = vendorSelect.value || "all";
+
         const uniqueTypes = Array.from(new Set(loadedGames.map(game => game.gameType))).sort((a, b) => a - b);
-        select.innerHTML = `<option value="all">Semua Tipe (All)</option>` + uniqueTypes.map(type =>
+        typeSelect.innerHTML = `<option value="all">Semua Tipe (All)</option>` + uniqueTypes.map(type =>
           `<option value="${escapeHtml(type)}">${escapeHtml(gameTypeLabel(type))}</option>`
         ).join("");
-        select.value = uniqueTypes.map(String).includes(current) || current === "all" ? current : "all";
+        typeSelect.value = uniqueTypes.map(String).includes(currentType) || currentType === "all" ? currentType : "all";
+
+        const vendorsMap = new Map();
+        loadedGames.forEach(game => {
+          if (!vendorsMap.has(game.vendorCode)) vendorsMap.set(game.vendorCode, game.vendorName);
+        });
+        const vendorOptions = Array.from(vendorsMap.entries()).sort((a, b) => a[1].localeCompare(b[1]));
+        vendorSelect.innerHTML = `<option value="all">Semua Vendor</option>` + vendorOptions.map(([code, name]) =>
+          `<option value="${escapeHtml(code)}">${escapeHtml(name)}</option>`
+        ).join("");
+        vendorSelect.value = vendorsMap.has(currentVendor) || currentVendor === "all" ? currentVendor : "all";
+      }
+
+      function getFilteredGames() {
+        const typeFilter = document.getElementById("gameListFilter").value;
+        const vendorFilter = document.getElementById("gameListVendorFilter").value;
+        return loadedGames.filter(game => {
+          if (typeFilter !== "all" && String(game.gameType) !== typeFilter) return false;
+          if (vendorFilter !== "all" && game.vendorCode !== vendorFilter) return false;
+          return true;
+        });
       }
 
       function renderGameListTable() {
         const tbody = document.getElementById("gameListTableBody");
-        const filter = document.getElementById("gameListFilter").value;
-        const filtered = filter === "all" ? loadedGames : loadedGames.filter(game => String(game.gameType) === filter);
+        const filtered = getFilteredGames();
         if (!filtered.length) {
           tbody.innerHTML = `<tr><td colspan="5" class="text-neutral-500 mono text-xs">tidak ada game untuk filter ini</td></tr>`;
+          renderPagination("gameListPagination", "gameList", 0, renderGameListTable);
           return;
         }
-        tbody.innerHTML = filtered.map((game, index) => `
+        const { pageItems, start } = paginate(filtered, "gameList");
+        tbody.innerHTML = pageItems.map((game, index) => `
           <tr>
-            <td class="mono text-xs text-neutral-500">${index + 1}</td>
+            <td class="mono text-xs text-neutral-500">${start + index + 1}</td>
             <td><span class="pill">${escapeHtml(gameTypeLabel(game.gameType))}</span></td>
             <td>
               <div>${escapeHtml(game.vendorName)}</div>
@@ -481,6 +598,7 @@
             <td><img class="game-thumb" src="${escapeHtml(parseLocalizedField(game.imageUrl, ""))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></td>
           </tr>
         `).join("");
+        renderPagination("gameListPagination", "gameList", filtered.length, renderGameListTable);
       }
 
       async function loadAllGames(force = false) {
@@ -510,7 +628,8 @@
           }));
           loadedGames = perVendor.flat();
           gameListLoaded = true;
-          rebuildGameTypeFilterOptions();
+          paginationState.gameList = 1;
+          rebuildGameFilterOptions();
           renderGameListTable();
           status.textContent = `${loadedGames.length} game dari ${vendors.length} vendor`;
         } catch (error) {
@@ -521,7 +640,8 @@
         }
       }
 
-      document.getElementById("gameListFilter").addEventListener("change", renderGameListTable);
+      document.getElementById("gameListFilter").addEventListener("change", () => { paginationState.gameList = 1; renderGameListTable(); });
+      document.getElementById("gameListVendorFilter").addEventListener("change", () => { paginationState.gameList = 1; renderGameListTable(); });
       document.getElementById("btnReloadGameList").addEventListener("click", () => loadAllGames(true));
 
       // ================= GAME CONTROL: LAUNCH GAME =================
@@ -642,42 +762,53 @@
       });
 
       // ================= LAUNCH HISTORY =================
+      let loadedLaunchHistory = [];
+
+      function renderLaunchHistoryTable() {
+        const tbody = document.getElementById("launchHistoryTableBody");
+        if (!loadedLaunchHistory.length) {
+          tbody.innerHTML = `<tr><td colspan="9" class="text-neutral-500 mono text-xs">belum ada riwayat</td></tr>`;
+          renderPagination("launchHistoryPagination", "launchHistory", 0, renderLaunchHistoryTable);
+          return;
+        }
+        const { pageItems, start } = paginate(loadedLaunchHistory, "launchHistory");
+        tbody.innerHTML = pageItems.map((item, index) => {
+          const response = item.response || {};
+          return `
+            <tr>
+              <td>${start + index + 1}</td>
+              <td>${escapeHtml(item.user_code)}</td>
+              <td class="mono text-xs">${escapeHtml(item.vendor_code)}</td>
+              <td class="mono text-xs">${escapeHtml(item.game_code)}</td>
+              <td class="mono">${escapeHtml(response.status)}</td>
+              <td class="text-xs">${escapeHtml(response.msg)}</td>
+              <td class="mono text-xs text-neutral-500">${escapeHtml(response.errorId ?? "-")}</td>
+              <td class="text-xs">${formatDateTime(item.created_at)}</td>
+              <td><button class="btn-ghost" data-delete-history="${escapeHtml(item._id)}">Hapus</button></td>
+            </tr>
+          `;
+        }).join("");
+        tbody.querySelectorAll("[data-delete-history]").forEach(button => {
+          button.addEventListener("click", async () => {
+            if (!confirm("Hapus riwayat ini?")) return;
+            try {
+              await callBackend(`/launch-history/${button.dataset.deleteHistory}`, "DELETE");
+              loadLaunchHistory();
+            } catch (error) {
+              alert("Gagal menghapus: " + error.message);
+            }
+          });
+        });
+        renderPagination("launchHistoryPagination", "launchHistory", loadedLaunchHistory.length, renderLaunchHistoryTable);
+      }
+
       async function loadLaunchHistory() {
         const tbody = document.getElementById("launchHistoryTableBody");
         tbody.innerHTML = `<tr><td colspan="9" class="text-neutral-500 mono text-xs">memuat...</td></tr>`;
+        document.getElementById("launchHistoryPagination").innerHTML = "";
         try {
-          const items = await callBackend("/launch-history", "GET");
-          if (!items.length) {
-            tbody.innerHTML = `<tr><td colspan="9" class="text-neutral-500 mono text-xs">belum ada riwayat</td></tr>`;
-            return;
-          }
-          tbody.innerHTML = items.map((item, index) => {
-            const response = item.response || {};
-            return `
-              <tr>
-                <td>${index + 1}</td>
-                <td>${escapeHtml(item.user_code)}</td>
-                <td class="mono text-xs">${escapeHtml(item.vendor_code)}</td>
-                <td class="mono text-xs">${escapeHtml(item.game_code)}</td>
-                <td class="mono">${escapeHtml(response.status)}</td>
-                <td class="text-xs">${escapeHtml(response.msg)}</td>
-                <td class="mono text-xs text-neutral-500">${escapeHtml(response.errorId ?? "-")}</td>
-                <td class="text-xs">${formatDateTime(item.created_at)}</td>
-                <td><button class="btn-ghost" data-delete-history="${escapeHtml(item._id)}">Hapus</button></td>
-              </tr>
-            `;
-          }).join("");
-          tbody.querySelectorAll("[data-delete-history]").forEach(button => {
-            button.addEventListener("click", async () => {
-              if (!confirm("Hapus riwayat ini?")) return;
-              try {
-                await callBackend(`/launch-history/${button.dataset.deleteHistory}`, "DELETE");
-                loadLaunchHistory();
-              } catch (error) {
-                alert("Gagal menghapus: " + error.message);
-              }
-            });
-          });
+          loadedLaunchHistory = await callBackend("/launch-history", "GET");
+          renderLaunchHistoryTable();
         } catch (error) {
           tbody.innerHTML = `<tr><td colspan="9" class="text-red-400 mono text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
         }
@@ -709,7 +840,8 @@
         }
       }
 
-      // Auto-load pas halaman dibuka
+      // Init: setelah semua handler & variabel selesai di-declare.
+      showSection(navigationSections[0].sectionKey);
       loadAgentInfo();
     </script>
   </body>
