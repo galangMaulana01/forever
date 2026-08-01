@@ -7,147 +7,118 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-      html { color-scheme: dark; }
-      body { font-family: 'Inter', sans-serif; }
-      .mono { font-family: 'JetBrains Mono', monospace; }
-      ::-webkit-scrollbar { width: 8px; height: 8px; }
-      ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-      .skeleton { background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.09) 37%, rgba(255,255,255,.04) 63%); background-size: 400% 100%; animation: sk 1.4s ease infinite; }
-      @keyframes sk { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
-      @media (prefers-reduced-motion: reduce) { .skeleton { animation: none !important; } }
-      .section { display: none; }
-      .section.active { display: block; }
-      .nav-item.active { background: rgba(255,255,255,.06); color: #fff; }
-      .f-input { width: 100%; background: transparent; border: 1px solid #262626; border-radius: .5rem; padding: .5rem .75rem; font-size: .8125rem; color: inherit; }
-      .f-input:focus { outline: 2px solid #3b82f6; outline-offset: 1px; }
-      .btn-run { font-size: .75rem; padding: .5rem 1rem; border-radius: .5rem; background: #f5f5f5; color: #0a0a0a; font-weight: 500; }
-      .btn-run:hover { background: #fff; }
-      .btn-run:disabled { opacity: .5; }
-      .btn-ghost { font-size: .75rem; padding: .5rem 1rem; border-radius: .5rem; border: 1px solid #262626; color: inherit; }
-      .btn-ghost:hover { background: rgba(255,255,255,.06); }
-      table.data-table { width: 100%; border-collapse: collapse; font-size: .8125rem; }
-      table.data-table th { text-align: left; font-weight: 500; color: #a3a3a3; padding: .5rem .75rem; border-bottom: 1px solid #262626; white-space: nowrap; }
-      table.data-table td { padding: .5rem .75rem; border-bottom: 1px solid #1a1a1a; vertical-align: middle; }
-      table.data-table tbody tr:hover { background: rgba(255,255,255,.02); }
-      .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: flex; align-items: center; justify-content: center; z-index: 50; }
-      .modal-overlay.hidden { display: none; }
-      .modal-box { width: 100%; max-width: 24rem; background: #0a0a0a; border: 1px solid #262626; border-radius: .75rem; padding: 1.25rem; }
-      .game-thumb { width: 48px; height: 48px; border-radius: .375rem; object-fit: cover; background: #171717; }
-      .pill { display: inline-block; font-size: .6875rem; padding: .125rem .5rem; border-radius: 999px; border: 1px solid #262626; }
-    </style>
   </head>
-  <body class="bg-neutral-950 text-neutral-300 min-h-screen">
+  <body class="bg-white text-neutral-900 font-['Inter',sans-serif] antialiased min-h-screen">
     <div class="flex min-h-screen">
       <!-- Sidebar -->
-      <aside id="sidebar" class="w-56 shrink-0 border-r border-neutral-800 bg-neutral-950 flex flex-col fixed h-screen z-20 -translate-x-full lg:translate-x-0 transition-transform">
-        <div class="flex flex-col items-start justify-center gap-0.5 px-4 py-3 border-b border-neutral-800">
-          <span id="statAgentCode" class="text-sm font-semibold text-neutral-100 tracking-tight"></span>
-          <span id="statBalance" class="text-xs font-semibold text-neutral-50 tracking-tight"></span>
+      <aside id="sidebar" class="w-56 shrink-0 border-r border-neutral-200 bg-white flex flex-col fixed h-screen z-20 -translate-x-full lg:translate-x-0 transition-transform">
+        <div class="flex flex-col items-start justify-center gap-0.5 px-4 py-3 border-b border-neutral-200">
+          <span id="statAgentCode" class="text-sm font-semibold text-neutral-900 tracking-tight"></span>
+          <span id="statBalance" class="text-xs font-semibold text-teal-700 tracking-tight"></span>
         </div>
         <nav id="navigationList" class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5 text-sm"></nav>
       </aside>
 
       <!-- Main -->
       <div class="flex-1 lg:ml-56">
-        <header class="h-14 border-b border-neutral-800 flex items-center justify-between px-4 sm:px-6 sticky top-0 bg-neutral-950/90 backdrop-blur z-10">
+        <header class="h-14 border-b border-neutral-200 flex items-center justify-between px-4 sm:px-6 sticky top-0 bg-white/90 backdrop-blur z-10">
           <div class="flex items-center gap-3">
-            <button id="menuToggleButton" class="lg:hidden p-1 text-neutral-400" aria-label="Menu">
+            <button id="menuToggleButton" class="lg:hidden p-1 text-neutral-500" aria-label="Menu">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
             </button>
             <div>
-              <h1 id="pageTitle" class="text-sm font-semibold text-neutral-100"></h1>
+              <h1 id="pageTitle" class="text-sm font-semibold text-neutral-900"></h1>
             </div>
           </div>
         </header>
 
         <main class="p-4 sm:p-6 max-w-6xl">
           <!-- ================= USERS ================= -->
-          <section class="section" data-section="users">
+          <section class="section hidden" data-section="users">
             <div class="flex justify-end mb-3">
-              <button id="btnOpenCreateUser" class="btn-run" type="button">+ Buat User</button>
+              <button id="btnOpenCreateUser" class="bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors" type="button">+ Buat User</button>
             </div>
-            <div class="border border-neutral-800 rounded-xl overflow-hidden">
+            <div class="border border-neutral-200 rounded-xl overflow-hidden bg-white">
               <div class="overflow-x-auto">
-                <table class="data-table">
+                <table class="w-full text-sm">
                   <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>Nama User</th>
-                      <th>Balance</th>
-                      <th>Action</th>
+                    <tr class="bg-neutral-50 border-b border-neutral-200">
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">ID</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Nama User</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Balance</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody id="usersTableBody">
-                    <tr><td colspan="4" class="text-neutral-500 mono text-xs">memuat...</td></tr>
+                    <tr><td colspan="4" class="px-4 py-3 text-neutral-400 font-['JetBrains_Mono'] text-xs">memuat...</td></tr>
                   </tbody>
                 </table>
               </div>
-              <div id="usersPagination" class="border-t border-neutral-800"></div>
+              <div id="usersPagination" class="border-t border-neutral-200"></div>
             </div>
           </section>
 
           <!-- ================= GAME LIST ================= -->
-          <section class="section" data-section="gamelist">
+          <section class="section hidden" data-section="gamelist">
             <div class="flex flex-wrap items-center gap-3 mb-3">
-              <select id="gameListVendorFilter" class="f-input max-w-xs">
+              <select id="gameListVendorFilter" class="w-full max-w-xs bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400">
                 <option value="all">Semua Vendor</option>
               </select>
-              <select id="gameListFilter" class="f-input max-w-xs">
+              <select id="gameListFilter" class="w-full max-w-xs bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400">
                 <option value="all">Semua Tipe (All)</option>
               </select>
-              <button id="btnReloadGameList" class="btn-ghost" type="button">Muat Ulang</button>
+              <button id="btnReloadGameList" class="border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-sm font-medium px-4 py-2 rounded-lg transition-colors" type="button">Muat Ulang</button>
               <span id="gameListStatus" class="text-xs text-neutral-500"></span>
             </div>
-            <div class="border border-neutral-800 rounded-xl overflow-hidden">
+            <div class="border border-neutral-200 rounded-xl overflow-hidden bg-white">
               <div class="overflow-x-auto">
-                <table class="data-table">
+                <table class="w-full text-sm">
                   <thead>
-                    <tr>
-                      <th>No</th>
-                      <th>Game Type</th>
-                      <th>Vendor</th>
-                      <th>Game Code / Name</th>
-                      <th>Image</th>
+                    <tr class="bg-neutral-50 border-b border-neutral-200">
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">No</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Game Type</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Vendor</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Game Code / Name</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Image</th>
                     </tr>
                   </thead>
                   <tbody id="gameListTableBody">
-                    <tr><td colspan="5" class="text-neutral-500 mono text-xs">memuat...</td></tr>
+                    <tr><td colspan="5" class="px-4 py-3 text-neutral-400 font-['JetBrains_Mono'] text-xs">memuat...</td></tr>
                   </tbody>
                 </table>
               </div>
-              <div id="gameListPagination" class="border-t border-neutral-800"></div>
+              <div id="gameListPagination" class="border-t border-neutral-200"></div>
             </div>
           </section>
 
           <!-- ================= GAME CONTROL ================= -->
-          <section class="section" data-section="gamecontrol">
+          <section class="section hidden" data-section="gamecontrol">
             <div class="space-y-4">
               <!-- Live Wager Feed -->
-              <div class="border border-neutral-800 rounded-xl p-4">
+              <div class="border border-neutral-200 rounded-xl p-4 bg-white">
                 <div class="flex items-center justify-between mb-3">
-                  <h3 class="text-sm font-medium text-neutral-200">Game Live</h3>
-                  <span id="wagerFeedStatus" class="pill text-neutral-500">memuat...</span>
+                  <h3 class="text-sm font-medium text-neutral-900">Game Live</h3>
+                  <span id="wagerFeedStatus" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-500">memuat...</span>
                 </div>
                 <p class="text-xs text-neutral-500 mb-3">Otomatis polling ReportByDate setiap 5 detik. Ini feed wager yang baru terjadi, bukan daftar sesi yang sedang online.</p>
-                <div class="border border-neutral-800 rounded-lg overflow-x-auto">
-                  <table class="data-table">
+                <div class="border border-neutral-200 rounded-lg overflow-x-auto">
+                  <table class="w-full text-sm">
                     <thead>
-                      <tr>
-                        <th>Waktu</th>
-                        <th>User</th>
-                        <th>Vendor</th>
-                        <th>Game</th>
-                        <th>Bet</th>
-                        <th>Payout</th>
-                        <th>Balance Sebelum</th>
-                        <th>Balance Sesudah</th>
-                        <th>Selesai</th>
-                        <th>Action</th>
+                      <tr class="bg-neutral-50 border-b border-neutral-200">
+                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Waktu</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">User</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Vendor</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Game</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Bet</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Payout</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Balance Sebelum</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Balance Sesudah</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Selesai</th>
+                        <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Action</th>
                       </tr>
                     </thead>
                     <tbody id="wagerFeedTableBody">
-                      <tr><td colspan="10" class="text-neutral-500 mono text-xs">memuat...</td></tr>
+                      <tr><td colspan="10" class="px-4 py-3 text-neutral-400 font-['JetBrains_Mono'] text-xs">memuat...</td></tr>
                     </tbody>
                   </table>
                 </div>
@@ -156,29 +127,29 @@
           </section>
 
           <!-- ================= LAUNCH HISTORY ================= -->
-          <section class="section" data-section="launch-history">
-            <div class="border border-neutral-800 rounded-xl overflow-hidden">
+          <section class="section hidden" data-section="launch-history">
+            <div class="border border-neutral-200 rounded-xl overflow-hidden bg-white">
               <div class="overflow-x-auto">
-                <table class="data-table">
+                <table class="w-full text-sm">
                   <thead>
-                    <tr>
-                      <th>No</th>
-                      <th>User</th>
-                      <th>Vendor</th>
-                      <th>Game Code</th>
-                      <th>Status</th>
-                      <th>Message</th>
-                      <th>Error ID</th>
-                      <th>Waktu</th>
-                      <th>Action</th>
+                    <tr class="bg-neutral-50 border-b border-neutral-200">
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">No</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">User</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Vendor</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Game Code</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Status</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Message</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Error ID</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Waktu</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Action</th>
                     </tr>
                   </thead>
                   <tbody id="launchHistoryTableBody">
-                    <tr><td colspan="9" class="text-neutral-500 mono text-xs">memuat...</td></tr>
+                    <tr><td colspan="9" class="px-4 py-3 text-neutral-400 font-['JetBrains_Mono'] text-xs">memuat...</td></tr>
                   </tbody>
                 </table>
               </div>
-              <div id="launchHistoryPagination" class="border-t border-neutral-800"></div>
+              <div id="launchHistoryPagination" class="border-t border-neutral-200"></div>
             </div>
           </section>
         </main>
@@ -186,60 +157,60 @@
     </div>
 
     <!-- Modal: Create User -->
-    <div id="modalCreateUser" class="modal-overlay hidden">
-      <form id="formCreateUser" class="modal-box space-y-3">
-        <h3 class="text-sm font-medium text-neutral-200">Buat User Baru</h3>
-        <input class="f-input" name="userCode" placeholder="Nama / kode user" required>
-        <div class="flex justify-end gap-2">
-          <button type="button" class="btn-ghost" data-close-modal="modalCreateUser">Batal</button>
-          <button type="submit" class="btn-run">Simpan</button>
+    <div id="modalCreateUser" class="fixed inset-0 bg-neutral-900/40 z-50 items-center justify-center p-4 hidden">
+      <form id="formCreateUser" class="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-neutral-200 p-6 space-y-3">
+        <h3 class="text-sm font-semibold text-neutral-900">Buat User Baru</h3>
+        <input class="w-full bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400" name="userCode" placeholder="Nama / kode user" required>
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" class="border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-sm font-medium px-4 py-2 rounded-lg transition-colors" data-close-modal="modalCreateUser">Batal</button>
+          <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50 transition-colors">Simpan</button>
         </div>
       </form>
     </div>
 
     <!-- Modal: Deposit/Withdraw -->
-    <div id="modalUserAction" class="modal-overlay hidden">
-      <form id="formUserAction" class="modal-box space-y-3">
-        <h3 class="text-sm font-medium text-neutral-200">Kelola Balance — <span id="userActionUserCode" class="mono"></span></h3>
-        <div class="flex gap-4 text-sm">
-          <label class="flex items-center gap-1.5"><input type="radio" name="actionType" value="deposit" checked> Deposit</label>
-          <label class="flex items-center gap-1.5"><input type="radio" name="actionType" value="withdraw"> Withdraw</label>
+    <div id="modalUserAction" class="fixed inset-0 bg-neutral-900/40 z-50 items-center justify-center p-4 hidden">
+      <form id="formUserAction" class="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-neutral-200 p-6 space-y-3">
+        <h3 class="text-sm font-semibold text-neutral-900">Kelola Balance — <span id="userActionUserCode" class="font-['JetBrains_Mono']"></span></h3>
+        <div class="flex gap-4 text-sm text-neutral-700">
+          <label class="flex items-center gap-1.5"><input type="radio" name="actionType" value="deposit" class="accent-teal-500" checked> Deposit</label>
+          <label class="flex items-center gap-1.5"><input type="radio" name="actionType" value="withdraw" class="accent-teal-500"> Withdraw</label>
         </div>
-        <input class="f-input" name="amount" type="number" step="any" min="0" placeholder="amount" required>
-        <div class="flex justify-end gap-2">
-          <button type="button" class="btn-ghost" data-close-modal="modalUserAction">Batal</button>
-          <button type="submit" class="btn-run">Simpan</button>
+        <input class="w-full bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400" name="amount" type="number" step="any" min="0" placeholder="amount" required>
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" class="border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-sm font-medium px-4 py-2 rounded-lg transition-colors" data-close-modal="modalUserAction">Batal</button>
+          <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50 transition-colors">Simpan</button>
         </div>
       </form>
     </div>
 
     <!-- Modal: Grant Free Round (Game Live -> Action) -->
-    <div id="modalGrantFreeRound" class="modal-overlay hidden">
-      <form id="formGrantFreeRound" class="modal-box space-y-3">
-        <h3 class="text-sm font-medium text-neutral-200">Beri Free Round — <span id="grantUserCode" class="mono"></span></h3>
+    <div id="modalGrantFreeRound" class="fixed inset-0 bg-neutral-900/40 z-50 items-center justify-center p-4 hidden">
+      <form id="formGrantFreeRound" class="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-neutral-200 p-6 space-y-3">
+        <h3 class="text-sm font-semibold text-neutral-900">Beri Free Round — <span id="grantUserCode" class="font-['JetBrains_Mono']"></span></h3>
 
         <label class="block space-y-1">
-          <span class="text-xs text-neutral-400">Freeround list <span class="text-red-500">*</span></span>
-          <select class="f-input" name="betAmount" required>
+          <span class="text-xs text-neutral-500">Freeround list <span class="text-red-500">*</span></span>
+          <select class="w-full bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400" name="betAmount" required>
             <option value="">memuat...</option>
           </select>
         </label>
 
         <label class="block space-y-1">
-          <span class="text-xs text-neutral-400">Freeround count <span class="text-red-500">*</span></span>
-          <input class="f-input" name="spinCount" type="number" min="1" step="1" value="10" required>
+          <span class="text-xs text-neutral-500">Freeround count <span class="text-red-500">*</span></span>
+          <input class="w-full bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400" name="spinCount" type="number" min="1" step="1" value="10" required>
         </label>
 
         <label class="block space-y-1">
-          <span class="text-xs text-neutral-400">Expire Hours <span class="text-red-500">*</span></span>
-          <input class="f-input" name="expireHours" type="number" min="1" step="any" value="24" required>
+          <span class="text-xs text-neutral-500">Expire Hours <span class="text-red-500">*</span></span>
+          <input class="w-full bg-white border border-neutral-300 rounded-lg px-3 py-2 text-sm text-neutral-900 focus:outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400" name="expireHours" type="number" min="1" step="any" value="24" required>
         </label>
 
-        <p id="grantFreeRoundError" class="text-red-400 text-xs"></p>
+        <p id="grantFreeRoundError" class="text-red-600 text-xs"></p>
 
-        <div class="flex justify-end gap-2">
-          <button type="button" class="btn-ghost" data-close-modal="modalGrantFreeRound">Close</button>
-          <button type="submit" class="btn-run">Apply</button>
+        <div class="flex justify-end gap-2 pt-1">
+          <button type="button" class="border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-sm font-medium px-4 py-2 rounded-lg transition-colors" data-close-modal="modalGrantFreeRound">Close</button>
+          <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white text-sm font-medium px-4 py-2 rounded-lg disabled:opacity-50 transition-colors">Apply</button>
         </div>
       </form>
     </div>
@@ -247,8 +218,13 @@
     <script>
       const agentCode = "Keenan";
       const CURRENCY_CODE = "IDR";
+      const MONO = "font-['JetBrains_Mono']";
 
-      // Navigasi sidebar
+      const NAV_BASE_CLASSES = ["w-full", "text-left", "px-3", "py-2", "rounded-lg", "text-sm", "transition-colors", "border-l-2"];
+      const NAV_INACTIVE_CLASSES = ["text-neutral-600", "hover:bg-neutral-50", "hover:text-neutral-900", "border-transparent"];
+      const NAV_ACTIVE_CLASSES = ["bg-teal-50", "text-teal-700", "font-medium", "border-teal-400"];
+
+      // Navigasi sidebar (flat, tanpa grouping)
       const navigationSections = [
         { sectionKey: "users", label: "User" },
         { sectionKey: "gamelist", label: "Game List" },
@@ -259,7 +235,7 @@
       const navigationListElement = document.getElementById("navigationList");
       navigationSections.forEach(navigationSection => {
         const navigationButton = document.createElement("button");
-        navigationButton.className = "nav-item w-full text-left px-3 py-2 rounded-lg text-neutral-400 hover:text-neutral-100 transition-colors";
+        navigationButton.classList.add(...NAV_BASE_CLASSES, ...NAV_INACTIVE_CLASSES);
         navigationButton.textContent = navigationSection.label;
         navigationButton.dataset.sectionKey = navigationSection.sectionKey;
         navigationButton.addEventListener("click", () => showSection(navigationSection.sectionKey));
@@ -268,10 +244,12 @@
 
       function showSection(sectionKey) {
         document.querySelectorAll(".section").forEach(sectionElement => {
-          sectionElement.classList.toggle("active", sectionElement.dataset.section === sectionKey);
+          sectionElement.classList.toggle("hidden", sectionElement.dataset.section !== sectionKey);
         });
-        document.querySelectorAll(".nav-item").forEach(navigationButton => {
-          navigationButton.classList.toggle("active", navigationButton.dataset.sectionKey === sectionKey);
+        document.querySelectorAll("#navigationList button").forEach(navigationButton => {
+          const isActive = navigationButton.dataset.sectionKey === sectionKey;
+          navigationButton.classList.remove(...NAV_INACTIVE_CLASSES, ...NAV_ACTIVE_CLASSES);
+          navigationButton.classList.add(...(isActive ? NAV_ACTIVE_CLASSES : NAV_INACTIVE_CLASSES));
         });
         const matchedSection = navigationSections.find(navigationSection => navigationSection.sectionKey === sectionKey);
         document.getElementById("pageTitle").textContent = matchedSection.label;
@@ -317,22 +295,16 @@
         return await response.json();
       }
 
-      function renderApiResult(outputElementId, responseData, errorMessage) {
-        const outputElement = document.getElementById(outputElementId);
-        if (!outputElement) return;
-        outputElement.classList.remove("skeleton");
-        outputElement.textContent = errorMessage ? "ERROR: " + errorMessage : JSON.stringify(responseData, null, 2);
+      function openModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
       }
-
-      function showLoadingState(outputElementId) {
-        const outputElement = document.getElementById(outputElementId);
-        if (!outputElement) return;
-        outputElement.classList.add("skeleton");
-        outputElement.textContent = "memuat...";
+      function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove("flex");
+        modal.classList.add("hidden");
       }
-
-      function openModal(modalId) { document.getElementById(modalId).classList.remove("hidden"); }
-      function closeModal(modalId) { document.getElementById(modalId).classList.add("hidden"); }
       document.querySelectorAll("[data-close-modal]").forEach(button => {
         button.addEventListener("click", () => closeModal(button.dataset.closeModal));
       });
@@ -346,6 +318,17 @@
         const date = new Date(value);
         if (isNaN(date.getTime())) return String(value);
         return date.toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" });
+      }
+
+      function badgeHtml(text, variant) {
+        const variants = {
+          success: "bg-emerald-50 text-emerald-700",
+          warning: "bg-amber-50 text-amber-700",
+          error: "bg-red-50 text-red-700",
+          neutral: "bg-neutral-100 text-neutral-600",
+          accent: "bg-teal-50 text-teal-700",
+        };
+        return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${variants[variant] || variants.neutral}">${escapeHtml(text)}</span>`;
       }
 
       // ================= PAGINATION =================
@@ -372,13 +355,14 @@
         }
         const from = (page - 1) * PAGE_SIZE + 1;
         const to = Math.min(page * PAGE_SIZE, total);
+        const navBtn = "border border-neutral-300 text-neutral-700 hover:bg-neutral-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-medium px-3 py-1.5 rounded-lg transition-colors";
         container.innerHTML = `
           <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-2 text-xs">
             <div class="text-neutral-500">Menampilkan ${from}-${to} dari ${total}</div>
             <div class="flex items-center gap-2">
-              <button class="btn-ghost" ${page === 1 ? "disabled" : ""} data-page="prev">Sebelumnya</button>
-              <span class="text-neutral-400">Halaman ${page} / ${pageCount}</span>
-              <button class="btn-ghost" ${page === pageCount ? "disabled" : ""} data-page="next">Berikutnya</button>
+              <button class="${navBtn}" ${page === 1 ? "disabled" : ""} data-page="prev">Sebelumnya</button>
+              <span class="text-neutral-500">Halaman ${page} / ${pageCount}</span>
+              <button class="${navBtn}" ${page === pageCount ? "disabled" : ""} data-page="next">Berikutnya</button>
             </div>
           </div>
         `;
@@ -393,21 +377,24 @@
 
       // ================= USERS =================
       let loadedUsers = [];
+      const outlineActionBtn = "border border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors";
+      const solidActionBtnSmall = "bg-teal-500 hover:bg-teal-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors";
+      const destructiveActionBtn = "border border-red-200 text-red-600 hover:bg-red-50 text-xs font-medium px-3 py-1.5 rounded-lg transition-colors";
 
       function renderUsersTable() {
         const tbody = document.getElementById("usersTableBody");
         if (!loadedUsers.length) {
-          tbody.innerHTML = `<tr><td colspan="4" class="text-neutral-500 mono text-xs">belum ada user</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">belum ada user</td></tr>`;
           renderPagination("usersPagination", "users", 0, renderUsersTable);
           return;
         }
         const { pageItems } = paginate(loadedUsers, "users");
         tbody.innerHTML = pageItems.map(user => `
-          <tr>
-            <td class="mono text-xs text-neutral-500">${escapeHtml(user._id)}</td>
-            <td>${escapeHtml(user.user_code)}</td>
-            <td class="mono">${escapeHtml(user.total_balance ?? 0)}</td>
-            <td><button class="btn-ghost" data-user-action="${escapeHtml(user.user_code)}">Deposit/Withdraw</button></td>
+          <tr class="border-t border-neutral-100 hover:bg-neutral-50">
+            <td class="px-4 py-3 ${MONO} text-xs text-neutral-400">${escapeHtml(user._id)}</td>
+            <td class="px-4 py-3 text-neutral-900">${escapeHtml(user.user_code)}</td>
+            <td class="px-4 py-3 ${MONO} text-neutral-900">${escapeHtml(user.total_balance ?? 0)}</td>
+            <td class="px-4 py-3"><button class="${outlineActionBtn}" data-user-action="${escapeHtml(user.user_code)}">Deposit/Withdraw</button></td>
           </tr>
         `).join("");
         tbody.querySelectorAll("[data-user-action]").forEach(button => {
@@ -425,13 +412,13 @@
 
       async function loadUsers() {
         const tbody = document.getElementById("usersTableBody");
-        tbody.innerHTML = `<tr><td colspan="4" class="text-neutral-500 mono text-xs">memuat...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">memuat...</td></tr>`;
         document.getElementById("usersPagination").innerHTML = "";
         try {
           loadedUsers = await callBackend("/users", "GET");
           renderUsersTable();
         } catch (error) {
-          tbody.innerHTML = `<tr><td colspan="4" class="text-red-400 mono text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-3 text-red-600 ${MONO} text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
         }
       }
 
@@ -545,24 +532,24 @@
         const tbody = document.getElementById("gameListTableBody");
         const filtered = getFilteredGames();
         if (!filtered.length) {
-          tbody.innerHTML = `<tr><td colspan="5" class="text-neutral-500 mono text-xs">tidak ada game untuk filter ini</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">tidak ada game untuk filter ini</td></tr>`;
           renderPagination("gameListPagination", "gameList", 0, renderGameListTable);
           return;
         }
         const { pageItems, start } = paginate(filtered, "gameList");
         tbody.innerHTML = pageItems.map((game, index) => `
-          <tr>
-            <td class="mono text-xs text-neutral-500">${start + index + 1}</td>
-            <td><span class="pill">${escapeHtml(gameTypeLabel(game.gameType))}</span></td>
-            <td>
-              <div>${escapeHtml(game.vendorName)}</div>
-              <div class="mono text-xs text-neutral-500">${escapeHtml(game.vendorCode)}</div>
+          <tr class="border-t border-neutral-100 hover:bg-neutral-50">
+            <td class="px-4 py-3 ${MONO} text-xs text-neutral-400">${start + index + 1}</td>
+            <td class="px-4 py-3">${badgeHtml(gameTypeLabel(game.gameType), "accent")}</td>
+            <td class="px-4 py-3">
+              <div class="text-neutral-900">${escapeHtml(game.vendorName)}</div>
+              <div class="${MONO} text-xs text-neutral-400">${escapeHtml(game.vendorCode)}</div>
             </td>
-            <td>
-              <div>${escapeHtml(parseLocalizedField(game.gameName, game.gameCode))}</div>
-              <div class="mono text-xs text-neutral-500">${escapeHtml(game.gameCode)}</div>
+            <td class="px-4 py-3">
+              <div class="text-neutral-900">${escapeHtml(parseLocalizedField(game.gameName, game.gameCode))}</div>
+              <div class="${MONO} text-xs text-neutral-400">${escapeHtml(game.gameCode)}</div>
             </td>
-            <td><img class="game-thumb" src="${escapeHtml(parseLocalizedField(game.imageUrl, ""))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></td>
+            <td class="px-4 py-3"><img class="w-12 h-12 rounded-lg object-cover bg-neutral-100 border border-neutral-200" src="${escapeHtml(parseLocalizedField(game.imageUrl, ""))}" alt="" loading="lazy" onerror="this.style.visibility='hidden'"></td>
           </tr>
         `).join("");
         renderPagination("gameListPagination", "gameList", filtered.length, renderGameListTable);
@@ -574,7 +561,7 @@
         gameListLoading = true;
         const tbody = document.getElementById("gameListTableBody");
         const status = document.getElementById("gameListStatus");
-        tbody.innerHTML = `<tr><td colspan="5" class="text-neutral-500 mono text-xs">memuat vendor...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">memuat vendor...</td></tr>`;
         status.textContent = "";
         try {
           const vendorResponse = await callBackend("/vendors", "GET");
@@ -600,7 +587,7 @@
           renderGameListTable();
           status.textContent = `${loadedGames.length} game dari ${vendors.length} vendor`;
         } catch (error) {
-          tbody.innerHTML = `<tr><td colspan="5" class="text-red-400 mono text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-3 text-red-600 ${MONO} text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
           status.textContent = "";
         } finally {
           gameListLoading = false;
@@ -615,6 +602,17 @@
       let wagerFeedIntervalId = null;
       const wagerFeedSeen = new Map();
 
+      function setWagerFeedStatus(text, variant) {
+        const el = document.getElementById("wagerFeedStatus");
+        const variants = {
+          live: "bg-emerald-50 text-emerald-700",
+          stopped: "bg-neutral-100 text-neutral-500",
+          error: "bg-red-50 text-red-700",
+        };
+        el.className = `inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${variants[variant] || variants.stopped}`;
+        el.textContent = text;
+      }
+
       function toCasinoDateTime(date) {
         const pad = n => String(n).padStart(2, "0");
         return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())} ${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`;
@@ -626,21 +624,21 @@
           .sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))
           .slice(0, 100);
         if (!wagers.length) {
-          tbody.innerHTML = `<tr><td colspan="10" class="text-neutral-500 mono text-xs">belum ada wager terbaru</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">belum ada wager terbaru</td></tr>`;
           return;
         }
         tbody.innerHTML = wagers.map(wager => `
-          <tr>
-            <td class="mono text-xs">${escapeHtml(wager.createdOn)}</td>
-            <td>${escapeHtml(wager.userCode)}</td>
-            <td class="mono text-xs">${escapeHtml(wager.vendorCode)}</td>
-            <td class="mono text-xs">${escapeHtml(wager.gameCode)}</td>
-            <td class="mono">${escapeHtml(wager.betAmount)}</td>
-            <td class="mono">${escapeHtml(wager.payoutAmount)}</td>
-            <td class="mono text-xs text-neutral-500">${escapeHtml(wager.beforeBalance)}</td>
-            <td class="mono text-xs text-neutral-500">${escapeHtml(wager.afterBalance)}</td>
-            <td>${wager.isFinished ? "✓" : "…"}</td>
-            <td><button class="btn-ghost" data-grant="${escapeHtml(wager.userCode)}" data-vendor="${escapeHtml(wager.vendorCode)}" data-game="${escapeHtml(wager.gameCode)}">Action</button></td>
+          <tr class="border-t border-neutral-100 hover:bg-neutral-50">
+            <td class="px-4 py-3 ${MONO} text-xs text-neutral-500">${escapeHtml(wager.createdOn)}</td>
+            <td class="px-4 py-3 text-neutral-900">${escapeHtml(wager.userCode)}</td>
+            <td class="px-4 py-3 ${MONO} text-xs text-neutral-500">${escapeHtml(wager.vendorCode)}</td>
+            <td class="px-4 py-3 ${MONO} text-xs text-neutral-500">${escapeHtml(wager.gameCode)}</td>
+            <td class="px-4 py-3 ${MONO} text-neutral-900">${escapeHtml(wager.betAmount)}</td>
+            <td class="px-4 py-3 ${MONO} text-neutral-900">${escapeHtml(wager.payoutAmount)}</td>
+            <td class="px-4 py-3 ${MONO} text-xs text-neutral-400">${escapeHtml(wager.beforeBalance)}</td>
+            <td class="px-4 py-3 ${MONO} text-xs text-neutral-400">${escapeHtml(wager.afterBalance)}</td>
+            <td class="px-4 py-3">${wager.isFinished ? badgeHtml("Selesai", "success") : badgeHtml("Berjalan", "warning")}</td>
+            <td class="px-4 py-3"><button class="${solidActionBtnSmall}" data-grant="${escapeHtml(wager.userCode)}" data-vendor="${escapeHtml(wager.vendorCode)}" data-game="${escapeHtml(wager.gameCode)}">Action</button></td>
           </tr>
         `).join("");
         tbody.querySelectorAll("[data-grant]").forEach(button => {
@@ -658,9 +656,9 @@
           });
           (response.wagers || []).forEach(wager => wagerFeedSeen.set(wager.wagerId, wager));
           renderWagerFeedTable();
-          document.getElementById("wagerFeedStatus").textContent = "live";
+          setWagerFeedStatus("live", "live");
         } catch (error) {
-          document.getElementById("wagerFeedStatus").textContent = "error: " + error.message;
+          setWagerFeedStatus("error: " + error.message, "error");
         }
       }
 
@@ -668,14 +666,14 @@
         if (wagerFeedIntervalId) return;
         pollWagerFeed();
         wagerFeedIntervalId = setInterval(pollWagerFeed, 5000);
-        document.getElementById("wagerFeedStatus").textContent = "live";
+        setWagerFeedStatus("live", "live");
       }
 
       function stopWagerFeed() {
         if (!wagerFeedIntervalId) return;
         clearInterval(wagerFeedIntervalId);
         wagerFeedIntervalId = null;
-        document.getElementById("wagerFeedStatus").textContent = "berhenti";
+        setWagerFeedStatus("berhenti", "stopped");
       }
 
       // ================= GAME CONTROL: GRANT FREE ROUND =================
@@ -749,24 +747,25 @@
       function renderLaunchHistoryTable() {
         const tbody = document.getElementById("launchHistoryTableBody");
         if (!loadedLaunchHistory.length) {
-          tbody.innerHTML = `<tr><td colspan="9" class="text-neutral-500 mono text-xs">belum ada riwayat</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">belum ada riwayat</td></tr>`;
           renderPagination("launchHistoryPagination", "launchHistory", 0, renderLaunchHistoryTable);
           return;
         }
         const { pageItems, start } = paginate(loadedLaunchHistory, "launchHistory");
         tbody.innerHTML = pageItems.map((item, index) => {
           const response = item.response || {};
+          const statusBadge = response.status === 0 ? badgeHtml("Sukses", "success") : badgeHtml("Gagal", "error");
           return `
-            <tr>
-              <td>${start + index + 1}</td>
-              <td>${escapeHtml(item.user_code)}</td>
-              <td class="mono text-xs">${escapeHtml(item.vendor_code)}</td>
-              <td class="mono text-xs">${escapeHtml(item.game_code)}</td>
-              <td class="mono">${escapeHtml(response.status)}</td>
-              <td class="text-xs">${escapeHtml(response.msg)}</td>
-              <td class="mono text-xs text-neutral-500">${escapeHtml(response.errorId ?? "-")}</td>
-              <td class="text-xs">${formatDateTime(item.created_at)}</td>
-              <td><button class="btn-ghost" data-delete-history="${escapeHtml(item._id)}">Hapus</button></td>
+            <tr class="border-t border-neutral-100 hover:bg-neutral-50">
+              <td class="px-4 py-3 text-neutral-500">${start + index + 1}</td>
+              <td class="px-4 py-3 text-neutral-900">${escapeHtml(item.user_code)}</td>
+              <td class="px-4 py-3 ${MONO} text-xs text-neutral-500">${escapeHtml(item.vendor_code)}</td>
+              <td class="px-4 py-3 ${MONO} text-xs text-neutral-500">${escapeHtml(item.game_code)}</td>
+              <td class="px-4 py-3">${statusBadge}</td>
+              <td class="px-4 py-3 text-xs text-neutral-600">${escapeHtml(response.msg)}</td>
+              <td class="px-4 py-3 ${MONO} text-xs text-neutral-400">${escapeHtml(response.errorId ?? "-")}</td>
+              <td class="px-4 py-3 text-xs text-neutral-500">${formatDateTime(item.created_at)}</td>
+              <td class="px-4 py-3"><button class="${destructiveActionBtn}" data-delete-history="${escapeHtml(item._id)}">Hapus</button></td>
             </tr>
           `;
         }).join("");
@@ -786,13 +785,13 @@
 
       async function loadLaunchHistory() {
         const tbody = document.getElementById("launchHistoryTableBody");
-        tbody.innerHTML = `<tr><td colspan="9" class="text-neutral-500 mono text-xs">memuat...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-3 text-neutral-400 ${MONO} text-xs">memuat...</td></tr>`;
         document.getElementById("launchHistoryPagination").innerHTML = "";
         try {
           loadedLaunchHistory = await callBackend("/launch-history", "GET");
           renderLaunchHistoryTable();
         } catch (error) {
-          tbody.innerHTML = `<tr><td colspan="9" class="text-red-400 mono text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="9" class="px-4 py-3 text-red-600 ${MONO} text-xs">ERROR: ${escapeHtml(error.message)}</td></tr>`;
         }
       }
 
@@ -802,7 +801,7 @@
         const balanceStatElement = document.getElementById("statBalance");
 
         agentCodeStatElement.textContent = agentCode;
-        balanceStatElement.classList.add("skeleton");
+        balanceStatElement.classList.add("animate-pulse");
         balanceStatElement.textContent = "memuat...";
 
         try {
@@ -818,7 +817,7 @@
         } catch (error) {
           balanceStatElement.textContent = "Gagal konek";
         } finally {
-          balanceStatElement.classList.remove("skeleton");
+          balanceStatElement.classList.remove("animate-pulse");
         }
       }
 
