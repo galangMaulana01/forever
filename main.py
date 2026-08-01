@@ -44,11 +44,20 @@ def call_casino(method: str, params: dict):
     return response.json()
 
 
+def call_casino_or_raise(method: str, params: dict, ignore_status=()):
+    data = call_casino(method, params)
+    if data.get("status") not in (0, *ignore_status):
+        raise HTTPException(status_code=400, detail=data.get("msg", f"{method} failed"))
+    return data
+
+
 @app.post("/users")
 def create_user(payload: dict = Body(...)):
     user_code = payload.get("user_code")
     if not user_code:
         raise HTTPException(status_code=400, detail="user_code is required")
+    # DUPLICATE_USER (7) means the user already exists upstream - treat as fine, not an error.
+    call_casino_or_raise("CreateUser", {"userCode": user_code}, ignore_status=(7,))
     existing = db.users.find_one({"user_code": user_code})
     if existing:
         return serialize(existing)
@@ -74,7 +83,7 @@ def deposit_user(user_code: str, payload: dict = Body(...)):
     amount = payload.get("amount")
     if amount is None:
         raise HTTPException(status_code=400, detail="amount is required")
-    return call_casino("Deposit", {"userCode": user_code, "currencyCode": CURRENCY_CODE, "amount": amount})
+    return call_casino_or_raise("Deposit", {"userCode": user_code, "currencyCode": CURRENCY_CODE, "amount": amount})
 
 
 @app.post("/users/{user_code}/withdraw")
@@ -82,7 +91,7 @@ def withdraw_user(user_code: str, payload: dict = Body(...)):
     amount = payload.get("amount")
     if amount is None:
         raise HTTPException(status_code=400, detail="amount is required")
-    return call_casino("Withdraw", {"userCode": user_code, "currencyCode": CURRENCY_CODE, "amount": amount})
+    return call_casino_or_raise("Withdraw", {"userCode": user_code, "currencyCode": CURRENCY_CODE, "amount": amount})
 
 
 @app.get("/vendors")
