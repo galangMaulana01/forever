@@ -123,36 +123,13 @@
           <!-- ================= GAME CONTROL ================= -->
           <section class="section" data-section="gamecontrol">
             <div class="space-y-4">
-              <!-- Launch Game -->
-              <form id="formLaunchGame" class="border border-neutral-800 rounded-xl p-4 space-y-2">
-                <h3 class="text-sm font-medium text-neutral-200">Launch Game Session</h3>
-                <div class="grid sm:grid-cols-3 gap-2">
-                  <input class="f-input" name="userCode" placeholder="userCode" required>
-                  <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
-                  <input class="f-input" name="gameCode" placeholder="gameCode (opsional)">
-                </div>
-                <div class="grid sm:grid-cols-2 gap-2">
-                  <input class="f-input" name="lowRtp" type="number" step="0.01" min="0" max="1" placeholder="lowRtp (opsional, ex. 0.6)">
-                  <input class="f-input" name="highRtp" type="number" step="0.01" min="0" max="1" placeholder="highRtp (opsional, ex. 0.8)">
-                </div>
-                <p class="text-xs text-neutral-500">RTP di-set saat sesi dimulai (tidak bisa diubah setelah sesi berjalan).</p>
-                <button class="btn-run" type="submit">Launch</button>
-              </form>
-              <div class="border border-neutral-800 rounded-xl">
-                <div class="px-4 py-3 border-b border-neutral-800"><h2 class="text-sm font-medium text-neutral-200">Respons Launch</h2></div>
-                <div class="p-4"><pre id="out-launch" class="mono text-xs text-neutral-500 whitespace-pre-wrap break-all min-h-[2.5rem]">belum ada request</pre></div>
-              </div>
-
               <!-- Live Wager Feed -->
               <div class="border border-neutral-800 rounded-xl p-4">
                 <div class="flex items-center justify-between mb-3">
-                  <h3 class="text-sm font-medium text-neutral-200">Live Wager Feed</h3>
-                  <div class="flex items-center gap-2">
-                    <span id="wagerFeedStatus" class="pill text-neutral-500">berhenti</span>
-                    <button id="btnToggleWagerFeed" class="btn-ghost" type="button">Mulai</button>
-                  </div>
+                  <h3 class="text-sm font-medium text-neutral-200">Game Live</h3>
+                  <span id="wagerFeedStatus" class="pill text-neutral-500">memuat...</span>
                 </div>
-                <p class="text-xs text-neutral-500 mb-3">Polling ke ReportByDate setiap 8 detik (rate-limit vendor: minimal 5 detik antar-panggilan). Ini feed wager yang baru terjadi, bukan daftar sesi yang sedang online.</p>
+                <p class="text-xs text-neutral-500 mb-3">Otomatis polling ReportByDate setiap 5 detik. Ini feed wager yang baru terjadi, bukan daftar sesi yang sedang online.</p>
                 <div class="border border-neutral-800 rounded-lg overflow-x-auto">
                   <table class="data-table">
                     <thead>
@@ -166,54 +143,13 @@
                         <th>Balance Sebelum</th>
                         <th>Balance Sesudah</th>
                         <th>Selesai</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody id="wagerFeedTableBody">
-                      <tr><td colspan="9" class="text-neutral-500 mono text-xs">klik "Mulai" untuk memantau wager terbaru</td></tr>
+                      <tr><td colspan="10" class="text-neutral-500 mono text-xs">memuat...</td></tr>
                     </tbody>
                   </table>
-                </div>
-              </div>
-
-              <!-- Free Round Management -->
-              <div class="border border-neutral-800 rounded-xl p-4 space-y-4">
-                <h3 class="text-sm font-medium text-neutral-200">Free Round Management</h3>
-
-                <form data-endpoint="GetFreeRoundList" class="space-y-2">
-                  <p class="text-xs text-neutral-400">Get Free Round List</p>
-                  <div class="grid sm:grid-cols-3 gap-2">
-                    <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
-                    <input class="f-input" name="gameCode" placeholder="gameCode" required>
-                    <button class="btn-run" type="submit">Jalankan</button>
-                  </div>
-                </form>
-
-                <form data-endpoint="ApplyFreeRound" class="space-y-2 border-t border-neutral-800 pt-3">
-                  <p class="text-xs text-neutral-400">Apply Free Round</p>
-                  <div class="grid sm:grid-cols-3 gap-2">
-                    <input class="f-input" name="userCode" placeholder="userCode" required>
-                    <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
-                    <input class="f-input" name="gameCode" placeholder="gameCode" required>
-                    <input class="f-input" name="betAmount" type="number" step="any" placeholder="betAmount (lihat Get Free Round List)" required>
-                    <input class="f-input" name="spinCount" type="number" placeholder="spinCount" required>
-                    <input class="f-input" name="expireHours" type="number" step="any" placeholder="expireHours" required>
-                  </div>
-                  <button class="btn-run" type="submit">Jalankan</button>
-                </form>
-
-                <form data-endpoint="CancelFreeRound" class="space-y-2 border-t border-neutral-800 pt-3">
-                  <p class="text-xs text-neutral-400">Cancel Free Round</p>
-                  <div class="grid sm:grid-cols-3 gap-2">
-                    <input class="f-input" name="userCode" placeholder="userCode" required>
-                    <input class="f-input" name="vendorCode" placeholder="vendorCode" required>
-                    <input class="f-input" name="gameCode" placeholder="gameCode" required>
-                  </div>
-                  <button class="btn-run" type="submit">Jalankan</button>
-                </form>
-
-                <div class="border border-neutral-800 rounded-lg">
-                  <div class="px-4 py-3 border-b border-neutral-800"><h2 class="text-sm font-medium text-neutral-200">Respons Free Round</h2></div>
-                  <div class="p-4"><pre id="out-freeround" class="mono text-xs text-neutral-500 whitespace-pre-wrap break-all min-h-[2.5rem]">belum ada request</pre></div>
                 </div>
               </div>
             </div>
@@ -277,6 +213,19 @@
       </form>
     </div>
 
+    <!-- Modal: Grant Free Round (Game Live -> Action) -->
+    <div id="modalGrantFreeRound" class="modal-overlay hidden">
+      <form id="formGrantFreeRound" class="modal-box space-y-3">
+        <h3 class="text-sm font-medium text-neutral-200">Beri Free Round — <span id="grantUserCode" class="mono"></span></h3>
+        <p class="text-xs text-neutral-500">Sistem otomatis: Cancel campaign lama → Get Free Round List → pilih betAmount terkecil → Apply Free Round. Ini memberi <em>nilai taruhan gratis</em> senilai jumlah di bawah, bukan kemenangan yang dijamin — hasil tetap ditentukan RNG game.</p>
+        <input class="f-input" name="targetAmount" type="number" step="any" min="0" placeholder="Jumlah yang ingin diberikan" required>
+        <div class="flex justify-end gap-2">
+          <button type="button" class="btn-ghost" data-close-modal="modalGrantFreeRound">Batal</button>
+          <button type="submit" class="btn-run">Kirim</button>
+        </div>
+      </form>
+    </div>
+
     <script>
       const agentCode = "Keenan";
       const CURRENCY_CODE = "IDR";
@@ -315,8 +264,8 @@
         if (sectionKey === "users") loadUsers();
         if (sectionKey === "gamelist") loadAllGames();
         if (sectionKey === "launch-history") loadLaunchHistory();
-        // Live wager feed hanya jalan kalau section gamecontrol aktif (hemat rate-limit vendor)
-        if (sectionKey !== "gamecontrol") stopWagerFeed();
+        // Live wager feed otomatis jalan/berhenti sesuai section aktif (hemat rate-limit vendor)
+        if (sectionKey === "gamecontrol") startWagerFeed(); else stopWagerFeed();
       }
 
       document.getElementById("menuToggleButton").addEventListener("click", () => {
@@ -644,36 +593,7 @@
       document.getElementById("gameListVendorFilter").addEventListener("change", () => { paginationState.gameList = 1; renderGameListTable(); });
       document.getElementById("btnReloadGameList").addEventListener("click", () => loadAllGames(true));
 
-      // ================= GAME CONTROL: LAUNCH GAME =================
-      document.getElementById("formLaunchGame").addEventListener("submit", async event => {
-        event.preventDefault();
-        const form = event.target;
-        const userCode = form.userCode.value;
-        const vendorCode = form.vendorCode.value;
-        const gameCode = form.gameCode.value;
-        const lowRtp = form.lowRtp.value;
-        const highRtp = form.highRtp.value;
-        showLoadingState("out-launch");
-        try {
-          await callBackend("/users", "POST", { user_code: userCode });
-          const casinoParams = { userCode, vendorCode, currencyCode: CURRENCY_CODE };
-          if (gameCode) casinoParams.gameCode = gameCode;
-          if (lowRtp) casinoParams.lowRtp = Number(lowRtp);
-          if (highRtp) casinoParams.highRtp = Number(highRtp);
-          const casinoResponse = await callCasino("GetGameUrl", casinoParams);
-          const historyResponse = await callBackend("/launch-history", "POST", {
-            user_code: userCode,
-            vendor_code: vendorCode,
-            game_code: gameCode,
-            response: casinoResponse
-          });
-          renderApiResult("out-launch", historyResponse);
-        } catch (error) {
-          renderApiResult("out-launch", null, error.message);
-        }
-      });
-
-      // ================= GAME CONTROL: LIVE WAGER FEED =================
+      // ================= GAME CONTROL: LIVE WAGER FEED (auto, 5 detik) =================
       let wagerFeedIntervalId = null;
       const wagerFeedSeen = new Map();
 
@@ -688,7 +608,7 @@
           .sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))
           .slice(0, 100);
         if (!wagers.length) {
-          tbody.innerHTML = `<tr><td colspan="9" class="text-neutral-500 mono text-xs">belum ada wager terbaru</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="10" class="text-neutral-500 mono text-xs">belum ada wager terbaru</td></tr>`;
           return;
         }
         tbody.innerHTML = wagers.map(wager => `
@@ -702,8 +622,20 @@
             <td class="mono text-xs text-neutral-500">${escapeHtml(wager.beforeBalance)}</td>
             <td class="mono text-xs text-neutral-500">${escapeHtml(wager.afterBalance)}</td>
             <td>${wager.isFinished ? "✓" : "…"}</td>
+            <td><button class="btn-ghost" data-grant="${escapeHtml(wager.userCode)}" data-vendor="${escapeHtml(wager.vendorCode)}" data-game="${escapeHtml(wager.gameCode)}">Action</button></td>
           </tr>
         `).join("");
+        tbody.querySelectorAll("[data-grant]").forEach(button => {
+          button.addEventListener("click", () => {
+            const form = document.getElementById("formGrantFreeRound");
+            form.dataset.userCode = button.dataset.grant;
+            form.dataset.vendorCode = button.dataset.vendor;
+            form.dataset.gameCode = button.dataset.game;
+            document.getElementById("grantUserCode").textContent = button.dataset.grant;
+            form.reset();
+            openModal("modalGrantFreeRound");
+          });
+        });
       }
 
       async function pollWagerFeed() {
@@ -725,8 +657,7 @@
       function startWagerFeed() {
         if (wagerFeedIntervalId) return;
         pollWagerFeed();
-        wagerFeedIntervalId = setInterval(pollWagerFeed, 8000);
-        document.getElementById("btnToggleWagerFeed").textContent = "Berhenti";
+        wagerFeedIntervalId = setInterval(pollWagerFeed, 5000);
         document.getElementById("wagerFeedStatus").textContent = "live";
       }
 
@@ -734,31 +665,39 @@
         if (!wagerFeedIntervalId) return;
         clearInterval(wagerFeedIntervalId);
         wagerFeedIntervalId = null;
-        document.getElementById("btnToggleWagerFeed").textContent = "Mulai";
         document.getElementById("wagerFeedStatus").textContent = "berhenti";
       }
 
-      document.getElementById("btnToggleWagerFeed").addEventListener("click", () => {
-        if (wagerFeedIntervalId) stopWagerFeed(); else startWagerFeed();
-      });
-
-      // ================= GAME CONTROL: FREE ROUND =================
-      document.querySelectorAll("form[data-endpoint]").forEach(formElement => {
-        formElement.addEventListener("submit", async submitEvent => {
-          submitEvent.preventDefault();
-          const methodName = formElement.dataset.endpoint;
-          const requestParameters = {};
-          formElement.querySelectorAll("[name]").forEach(inputElement => {
-            requestParameters[inputElement.name] = inputElement.value;
+      // ================= GAME CONTROL: GRANT FREE ROUND (otomatis) =================
+      document.getElementById("formGrantFreeRound").addEventListener("submit", async event => {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const submitButton = form.querySelector("button[type=submit]");
+        const targetAmount = Number(form.querySelector('input[name="targetAmount"]').value);
+        if (!Number.isFinite(targetAmount) || targetAmount <= 0) {
+          alert("Jumlah harus lebih dari 0.");
+          return;
+        }
+        submitButton.disabled = true;
+        try {
+          const result = await callBackend("/game-control/grant", "POST", {
+            user_code: form.dataset.userCode,
+            vendor_code: form.dataset.vendorCode,
+            game_code: form.dataset.gameCode,
+            target_amount: targetAmount,
           });
-          showLoadingState("out-freeround");
-          try {
-            const responseData = await callCasino(methodName, requestParameters);
-            renderApiResult("out-freeround", responseData);
-          } catch (error) {
-            renderApiResult("out-freeround", null, error.message);
-          }
-        });
+          form.reset();
+          closeModal("modalGrantFreeRound");
+          alert(
+            `Free round diberikan ke ${form.dataset.userCode}:\n` +
+            `${result.betAmount} per spin x ${result.spinCount} spin\n` +
+            `(total nilai taruhan gratis: ${result.total_value})`
+          );
+        } catch (error) {
+          alert("Gagal memberi free round: " + error.message);
+        } finally {
+          submitButton.disabled = false;
+        }
       });
 
       // ================= LAUNCH HISTORY =================
