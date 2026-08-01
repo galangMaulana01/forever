@@ -1,6 +1,7 @@
 {
   "builds": [
-    { "src": "main.py", "use": "@vercel/python" }
+    { "src": "main.py", "use": "@vercel/python" },
+    { "src": "index.html", "use": "@vercel/static" }
   ],
   "routes": [
     { "src": "/users(.*)", "dest": "main.py" },
