@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Master Control</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -12,16 +11,8 @@
     <div class="flex min-h-screen">
       <!-- Sidebar -->
       <aside id="sidebar" class="w-56 shrink-0 border-r border-neutral-200 bg-white flex flex-col fixed h-screen z-20 -translate-x-full lg:translate-x-0 transition-transform">
-        <!-- Logo -->
-        <div class="flex items-center gap-2 px-4 py-3 border-b border-neutral-200">
-          <svg viewBox="0 0 32 32" fill="none" class="w-7 h-7 shrink-0" aria-hidden="true">
-            <rect width="32" height="32" rx="9" fill="#14b8a6"/>
-            <path d="M9 22V10l7 7 7-7v12" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="text-sm font-semibold text-neutral-900 tracking-tight">Master Control</span>
-        </div>
         <!-- Avatar + welcome -->
-        <div class="flex flex-col items-center text-center gap-2 px-4 py-4 border-b border-neutral-200">
+        <div class="flex flex-col items-center text-center gap-2 px-4 py-4 border-neutral-200">
           <div id="avatarInitial" class="w-10 h-10 rounded-full bg-teal-500 text-white flex items-center justify-center text-sm font-semibold"></div>
           <p class="text-xs text-neutral-500 leading-snug">Welcome back,<br><span id="statAgentCode" class="text-sm font-semibold text-neutral-900"></span></p>
         </div>
@@ -91,7 +82,7 @@
                       <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">No</th>
                       <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Game Type</th>
                       <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Vendor</th>
-                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Game Code / Name</th>
+                      <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Game Code</th>
                       <th class="px-4 py-3 text-left text-xs font-medium text-neutral-500 uppercase tracking-wide whitespace-nowrap">Image</th>
                     </tr>
                   </thead>
@@ -109,9 +100,8 @@
             <div class="space-y-4">
               <!-- Live Wager Feed -->
               <div class="border border-neutral-200 rounded-xl p-4 bg-white">
-                <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center justify-start mb-3">
                   <h3 class="text-sm font-medium text-neutral-900">Game Live</h3>
-                  <span id="wagerFeedStatus" class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-500">memuat...</span>
                 </div>
                 <p class="text-xs text-neutral-500 mb-3">Otomatis polling ReportByDate setiap 5 detik. Ini feed wager yang baru terjadi, bukan daftar sesi yang sedang online.</p>
                 <div class="border border-neutral-200 rounded-lg overflow-x-auto">
@@ -277,12 +267,10 @@
         document.getElementById("sidebar").classList.toggle("-translate-x-full");
       });
 
-      // Pemanggilan Casino API (diproxy lewat backend, token disimpan server-side)
       async function callCasino(methodName, requestParameters = {}) {
         return await callBackend("/casino", "POST", { method: methodName, ...requestParameters });
       }
 
-      // Pemanggilan Backend (same origin)
       async function callBackend(endpoint, method = "GET", body = null) {
         const config = {
           method: method,
@@ -309,6 +297,7 @@
         modal.classList.remove("hidden");
         modal.classList.add("flex");
       }
+
       function closeModal(modalId) {
         const modal = document.getElementById(modalId);
         modal.classList.remove("flex");
@@ -355,7 +344,6 @@
         `;
       }
 
-      // ================= PAGINATION =================
       const PAGE_SIZE = 25;
       const paginationState = { users: 1, gameList: 1, logs: 1 };
 
@@ -616,7 +604,6 @@
       document.getElementById("gameListVendorFilter").addEventListener("change", () => { paginationState.gameList = 1; renderGameListTable(); });
       document.getElementById("gameListSearch").addEventListener("input", () => { paginationState.gameList = 1; renderGameListTable(); });
 
-      // ================= GAME CONTROL: LIVE WAGER FEED (auto, 5 detik) =================
       let wagerFeedIntervalId = null;
       const wagerFeedSeen = new Map();
 
@@ -694,10 +681,6 @@
         setWagerFeedStatus("berhenti", "stopped");
       }
 
-      // ================= GAME CONTROL: GRANT FREE ROUND =================
-      // Get Free Round List (17) otomatis dipanggil begitu modal dibuka -> dropdown.
-      // Apply Free Round (18) dipanggil saat submit. userCode/vendorCode/gameCode
-      // selalu berasal dari row Game Live, admin tidak perlu ketik manual.
       async function openGrantFreeRoundModal(userCode, vendorCode, gameCode) {
         const form = document.getElementById("formGrantFreeRound");
         form.reset();
@@ -745,8 +728,6 @@
         const params = { userCode: form.dataset.userCode, vendorCode: form.dataset.vendorCode, gameCode: form.dataset.gameCode };
         submitButton.disabled = true;
         try {
-          // Best-effort: bersihkan campaign lama biar gak numpuk. Kegagalan di sini
-          // (misal karena memang belum ada campaign aktif) tidak menghentikan Apply.
           await callCasino("CancelFreeRound", params).catch(() => {});
 
           await callCasino("ApplyFreeRound", { ...params, betAmount, spinCount, expireHours });
@@ -759,7 +740,6 @@
         }
       });
 
-      // ================= LOG =================
       let loadedLogs = [];
       const LOG_ACTION_VARIANT = {
         CreateUser: "accent",
@@ -820,7 +800,6 @@
         }
       }
 
-      // Muat info agent buat sidebar (avatar + welcome) & header (balance)
       async function loadAgentInfo() {
         const agentCodeStatElement = document.getElementById("statAgentCode");
         const balanceStatElement = document.getElementById("statBalance");
@@ -848,7 +827,6 @@
         }
       }
 
-      // Init: setelah semua handler & variabel selesai di-declare.
       showSection(navigationSections[0].sectionKey);
       loadAgentInfo();
     </script>
