@@ -1,0 +1,13 @@
+{
+  "builds": [
+    { "src": "main.py", "use": "@vercel/python" }
+  ],
+  "routes": [
+    { "src": "/users(.*)", "dest": "main.py" },
+    { "src": "/vendors(.*)", "dest": "main.py" },
+    { "src": "/games(.*)", "dest": "main.py" },
+    { "src": "/launch-history(.*)", "dest": "main.py" },
+    { "src": "/casino(.*)", "dest": "main.py" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}

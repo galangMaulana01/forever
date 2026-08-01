@@ -141,9 +141,13 @@
           <!-- ================= LAUNCH HISTORY MANAGEMENT (Backend) ================= -->
           <section class="section" data-section="launch-history">
             <div class="grid lg:grid-cols-2 gap-4">
-              <!-- We only keep the Delete form because the backend does not provide a GET list endpoint -->
+              <form class="border border-neutral-800 rounded-xl p-4 space-y-2" data-endpoint="ListLaunchHistory" data-out="out-launch-history">
+                <h3 class="text-sm font-medium text-neutral-200">List Launch History</h3>
+                <button class="btn-run" type="submit">Jalankan</button>
+              </form>
+
               <form class="border border-neutral-800 rounded-xl p-4 space-y-2" data-endpoint="DeleteLaunchHistory" data-out="out-launch-history">
-                <h3 class="text-sm font-medium text-neutral-200">Delete Launch History (for testing)</h3>
+                <h3 class="text-sm font-medium text-neutral-200">Delete Launch History</h3>
                 <input class="f-input" name="id" placeholder="id" required>
                 <button class="btn-run" type="submit">Jalankan</button>
               </form>
@@ -158,16 +162,14 @@
     </div>
 
     <script>
-      const apiToken = "7a7679686270667765787036746e6635";
       const agentCode = "Keenan";
-      const apiBaseUrl = "https://api.aicvgdbi.win/api/casinoapi";
 
       // Navigasi sidebar
       const navigationSections = [
         { sectionKey: "users", label: "User Management" },
         { sectionKey: "games", label: "Game & Provider" },
         { sectionKey: "freeround", label: "Free Round" },
-        { sectionKey: "launch-history", label: "Launch History (Delete)" },
+        { sectionKey: "launch-history", label: "Launch History" },
       ];
 
       const navigationListElement = document.getElementById("navigationList");
@@ -200,20 +202,9 @@
         document.getElementById("sidebar").classList.toggle("-translate-x-full");
       });
 
-      // Pemanggilan Casino API
+      // Pemanggilan Casino API (diproxy lewat backend, token disimpan server-side)
       async function callCasino(methodName, requestParameters = {}) {
-        const requestBody = { method: methodName, token: apiToken, agentCode: agentCode, ...requestParameters };
-        Object.keys(requestBody).forEach(parameterName => {
-          if (requestBody[parameterName] === "" || requestBody[parameterName] === undefined) {
-            delete requestBody[parameterName];
-          }
-        });
-        const response = await fetch(apiBaseUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody)
-        });
-        return await response.json();
+        return await callBackend("/casino", "POST", { method: methodName, ...requestParameters });
       }
 
       // Pemanggilan Backend (same origin)
@@ -265,7 +256,7 @@
           try {
             let responseData;
             // Determine if endpoint is backend or casino
-            const backendEndpoints = ["CreateUser", "ListUsers", "GetVendors", "GetVendorGames", "LaunchGame", "DeleteLaunchHistory"];
+            const backendEndpoints = ["CreateUser", "ListUsers", "GetVendors", "GetVendorGames", "LaunchGame", "ListLaunchHistory", "DeleteLaunchHistory"];
             if (backendEndpoints.includes(methodName)) {
               // Backend call
               switch (methodName) {
@@ -297,6 +288,9 @@
                     game_code: requestParameters.gameCode,
                     response: casinoResponse
                   });
+                  break;
+                case "ListLaunchHistory":
+                  responseData = await callBackend("/launch-history", "GET");
                   break;
                 case "DeleteLaunchHistory":
                   responseData = await callBackend(`/launch-history/${requestParameters.id}`, "DELETE");
