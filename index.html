@@ -217,11 +217,29 @@
     <div id="modalGrantFreeRound" class="modal-overlay hidden">
       <form id="formGrantFreeRound" class="modal-box space-y-3">
         <h3 class="text-sm font-medium text-neutral-200">Beri Free Round — <span id="grantUserCode" class="mono"></span></h3>
-        <p class="text-xs text-neutral-500">Sistem otomatis: Cancel campaign lama → Get Free Round List → pilih betAmount terkecil → Apply Free Round. Ini memberi <em>nilai taruhan gratis</em> senilai jumlah di bawah, bukan kemenangan yang dijamin — hasil tetap ditentukan RNG game.</p>
-        <input class="f-input" name="targetAmount" type="number" step="any" min="0" placeholder="Jumlah yang ingin diberikan" required>
+
+        <label class="block space-y-1">
+          <span class="text-xs text-neutral-400">Freeround list <span class="text-red-500">*</span></span>
+          <select class="f-input" name="betAmount" required>
+            <option value="">memuat...</option>
+          </select>
+        </label>
+
+        <label class="block space-y-1">
+          <span class="text-xs text-neutral-400">Freeround count <span class="text-red-500">*</span></span>
+          <input class="f-input" name="spinCount" type="number" min="1" step="1" value="10" required>
+        </label>
+
+        <label class="block space-y-1">
+          <span class="text-xs text-neutral-400">Expire Hours <span class="text-red-500">*</span></span>
+          <input class="f-input" name="expireHours" type="number" min="1" step="any" value="24" required>
+        </label>
+
+        <p id="grantFreeRoundError" class="text-red-400 text-xs"></p>
+
         <div class="flex justify-end gap-2">
-          <button type="button" class="btn-ghost" data-close-modal="modalGrantFreeRound">Batal</button>
-          <button type="submit" class="btn-run">Kirim</button>
+          <button type="button" class="btn-ghost" data-close-modal="modalGrantFreeRound">Close</button>
+          <button type="submit" class="btn-run">Apply</button>
         </div>
       </form>
     </div>
@@ -626,15 +644,7 @@
           </tr>
         `).join("");
         tbody.querySelectorAll("[data-grant]").forEach(button => {
-          button.addEventListener("click", () => {
-            const form = document.getElementById("formGrantFreeRound");
-            form.dataset.userCode = button.dataset.grant;
-            form.dataset.vendorCode = button.dataset.vendor;
-            form.dataset.gameCode = button.dataset.game;
-            document.getElementById("grantUserCode").textContent = button.dataset.grant;
-            form.reset();
-            openModal("modalGrantFreeRound");
-          });
+          button.addEventListener("click", () => openGrantFreeRoundModal(button.dataset.grant, button.dataset.vendor, button.dataset.game));
         });
       }
 
@@ -668,33 +678,66 @@
         document.getElementById("wagerFeedStatus").textContent = "berhenti";
       }
 
-      // ================= GAME CONTROL: GRANT FREE ROUND (otomatis) =================
+      // ================= GAME CONTROL: GRANT FREE ROUND =================
+      // Get Free Round List (17) otomatis dipanggil begitu modal dibuka -> dropdown.
+      // Apply Free Round (18) dipanggil saat submit. userCode/vendorCode/gameCode
+      // selalu berasal dari row Game Live, admin tidak perlu ketik manual.
+      async function openGrantFreeRoundModal(userCode, vendorCode, gameCode) {
+        const form = document.getElementById("formGrantFreeRound");
+        form.reset();
+        form.dataset.userCode = userCode;
+        form.dataset.vendorCode = vendorCode;
+        form.dataset.gameCode = gameCode;
+        document.getElementById("grantUserCode").textContent = userCode;
+        document.getElementById("grantFreeRoundError").textContent = "";
+
+        const betSelect = form.querySelector('select[name="betAmount"]');
+        const submitButton = form.querySelector("button[type=submit]");
+        betSelect.innerHTML = `<option value="">memuat...</option>`;
+        submitButton.disabled = true;
+        openModal("modalGrantFreeRound");
+
+        try {
+          const response = await callCasino("GetFreeRoundList", { vendorCode, gameCode });
+          const freeRounds = response.freeRounds || [];
+          if (!freeRounds.length) {
+            betSelect.innerHTML = `<option value="">tidak tersedia</option>`;
+            document.getElementById("grantFreeRoundError").textContent = "Game ini tidak mendukung Free Round.";
+            return;
+          }
+          betSelect.innerHTML = freeRounds.map(amount => `<option value="${amount}">${amount}${CURRENCY_CODE}</option>`).join("");
+          submitButton.disabled = false;
+        } catch (error) {
+          betSelect.innerHTML = `<option value="">gagal memuat</option>`;
+          document.getElementById("grantFreeRoundError").textContent = "Gagal memuat Freeround list: " + error.message;
+        }
+      }
+
       document.getElementById("formGrantFreeRound").addEventListener("submit", async event => {
         event.preventDefault();
         const form = event.currentTarget;
         const submitButton = form.querySelector("button[type=submit]");
-        const targetAmount = Number(form.querySelector('input[name="targetAmount"]').value);
-        if (!Number.isFinite(targetAmount) || targetAmount <= 0) {
-          alert("Jumlah harus lebih dari 0.");
-          return;
-        }
+        const betAmount = Number(form.querySelector('select[name="betAmount"]').value);
+        const spinCount = Number(form.querySelector('input[name="spinCount"]').value);
+        const expireHours = Number(form.querySelector('input[name="expireHours"]').value);
+        const errorEl = document.getElementById("grantFreeRoundError");
+        errorEl.textContent = "";
+        if (!betAmount) { errorEl.textContent = "Pilih Freeround list dulu."; return; }
+        if (!Number.isFinite(spinCount) || spinCount <= 0) { errorEl.textContent = "Freeround count harus lebih dari 0."; return; }
+        if (!Number.isFinite(expireHours) || expireHours <= 0) { errorEl.textContent = "Expire Hours harus lebih dari 0."; return; }
+
+        const params = { userCode: form.dataset.userCode, vendorCode: form.dataset.vendorCode, gameCode: form.dataset.gameCode };
         submitButton.disabled = true;
         try {
-          const result = await callBackend("/game-control/grant", "POST", {
-            user_code: form.dataset.userCode,
-            vendor_code: form.dataset.vendorCode,
-            game_code: form.dataset.gameCode,
-            target_amount: targetAmount,
-          });
-          form.reset();
+          // Best-effort: bersihkan campaign lama biar gak numpuk. Kegagalan di sini
+          // (misal karena memang belum ada campaign aktif) tidak menghentikan Apply.
+          await callCasino("CancelFreeRound", params).catch(() => {});
+
+          await callCasino("ApplyFreeRound", { ...params, betAmount, spinCount, expireHours });
           closeModal("modalGrantFreeRound");
-          alert(
-            `Free round diberikan ke ${form.dataset.userCode}:\n` +
-            `${result.betAmount} per spin x ${result.spinCount} spin\n` +
-            `(total nilai taruhan gratis: ${result.total_value})`
-          );
+          alert(`Free round diberikan ke ${form.dataset.userCode}: ${betAmount}${CURRENCY_CODE} x ${spinCount} spin (expire ${expireHours} jam).`);
         } catch (error) {
-          alert("Gagal memberi free round: " + error.message);
+          errorEl.textContent = "Gagal: " + error.message;
         } finally {
           submitButton.disabled = false;
         }

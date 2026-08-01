@@ -1,4 +1,3 @@
-import math
 import os
 
 import httpx
@@ -118,44 +117,6 @@ def casino_proxy(payload: dict = Body(...)):
     if not method:
         raise HTTPException(status_code=400, detail="method is required")
     return call_casino(method, payload)
-
-
-@app.post("/game-control/grant")
-def grant_free_round(payload: dict = Body(...)):
-    user_code = payload.get("user_code")
-    vendor_code = payload.get("vendor_code")
-    game_code = payload.get("game_code")
-    target_amount = payload.get("target_amount")
-    if not user_code or not vendor_code or not game_code:
-        raise HTTPException(status_code=400, detail="user_code, vendor_code, game_code wajib diisi")
-    if not isinstance(target_amount, (int, float)) or target_amount <= 0:
-        raise HTTPException(status_code=400, detail="target_amount harus lebih dari 0")
-
-    free_round_params = {"userCode": user_code, "vendorCode": vendor_code, "gameCode": game_code}
-
-    # Best-effort: bersihkan campaign lama biar gak numpuk. Tidak fatal kalau gagal
-    # (misalnya karena memang belum ada campaign aktif untuk user+game ini).
-    call_casino("CancelFreeRound", free_round_params)
-
-    list_response = call_casino_or_raise("GetFreeRoundList", free_round_params)
-    free_rounds = list_response.get("freeRounds") or []
-    if not free_rounds:
-        raise HTTPException(status_code=400, detail="Game ini tidak mendukung Free Round")
-
-    bet_amount = min(free_rounds)
-    spin_count = math.ceil(target_amount / bet_amount)
-
-    apply_response = call_casino_or_raise(
-        "ApplyFreeRound",
-        {**free_round_params, "betAmount": bet_amount, "spinCount": spin_count, "expireHours": 1},
-    )
-
-    return {
-        **apply_response,
-        "betAmount": bet_amount,
-        "spinCount": spin_count,
-        "total_value": bet_amount * spin_count,
-    }
 
 
 @app.post("/launch-history")
